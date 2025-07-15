@@ -34,6 +34,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Website $website = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -113,5 +117,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // @deprecated, to be removed when upgrading to Symfony 8
+    }
+
+    public function getWebsite(): ?Website
+    {
+        return $this->website;
+    }
+
+    public function setWebsite(Website $website): static
+    {
+        $this->website = $website;
+
+        return $this;
     }
 }

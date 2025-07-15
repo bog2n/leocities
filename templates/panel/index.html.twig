@@ -4,4 +4,14 @@
 
 {% block body %}
 
+<a href="{{ path('app_home') }}">Back</a>
+
+<hr>
+
+<b>{{ app.user.username }}'s website!</b>
+
+{{ include('_info_form.html.twig') }}
+
+<hr>
+
 {% endblock %}
