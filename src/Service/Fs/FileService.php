@@ -199,5 +199,28 @@ class FileService {
 
         return $out;
     }
+
+    // returns array of Array('name' => length) entries,
+    // length is set to -1 if entry is a directory
+    public function list_dir($inode_id) {
+        if ($this->root_inode === null) {
+            throw new HttpException\UnauthorizedHttpException;
+        }
+
+        $inode = $this->inode_repository->findOneById($inode_id);
+        $dir = $inode->getDir();
+        if ($dir === null) {
+            throw new Exception\IsFileException;
+        }
+
+        $out = Array();
+
+        foreach ($dir->getChild() as $child) {
+            $length = $this->inode_repository->getLength($child->getId());
+            $out[] = Array($child->getName(), $length);
+        }
+
+        return $out;
+    }
 }
 
