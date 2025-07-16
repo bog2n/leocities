@@ -105,6 +105,11 @@ class Inode
         return $this;
     }
 
+    public function isDir(): bool
+    {
+        return $this->getDir() !== null;
+    }
+
     public function getParent(): ?Dir
     {
         return $this->parent;

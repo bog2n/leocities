@@ -164,5 +164,40 @@ class FileService {
 
         $this->manager->getConnection()->commit();
     }
+
+    public function read($inode_id) {
+        if ($this->root_inode === null) {
+            throw new HttpException\UnauthorizedHttpException;
+        }
+
+        $inode = $this->inode_repository->findOneById($inode_id);
+        if ($inode->isDir()) {
+            throw new Exception\IsDirectoryException;
+        }
+
+        $out = '';
+
+        $handle = fopen($this->block_file, "r");
+        if (!$handle) {
+            throw new \Exception("Can't open block file");
+        }
+        
+        foreach ($inode->getExtent() as $extent) {
+            if (fseek($handle, $extent->getStart() * BLOCK_SIZE, SEEK_SET) === -1) {
+                throw new \Exception("Can't seek in block file");
+            }
+            $chunk = fread($handle, $extent->getLength());
+            if ($chunk === false) {
+                throw new \Exception("Can't read block file");
+            }
+            $out .= $chunk;
+        }
+
+        if (!fclose($handle)) {
+            throw new \Exception("Can't close block file");
+        }
+
+        return $out;
+    }
 }
 
