@@ -20,6 +20,9 @@ class Extent
     #[ORM\Column(type: Types::BIGINT)]
     private ?string $length = null;
 
+    #[ORM\ManyToOne(inversedBy: 'extent')]
+    private ?Inode $inode = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -45,6 +48,18 @@ class Extent
     public function setLength(string $length): static
     {
         $this->length = $length;
+
+        return $this;
+    }
+
+    public function getInode(): ?Inode
+    {
+        return $this->inode;
+    }
+
+    public function setInode(?Inode $inode): static
+    {
+        $this->inode = $inode;
 
         return $this;
     }

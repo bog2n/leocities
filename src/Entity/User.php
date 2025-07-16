@@ -44,6 +44,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $quota_used = null;
 
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    private ?Inode $root_inode = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -157,6 +160,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setQuotaUsed(int $quota_used): static
     {
         $this->quota_used = $quota_used;
+
+        return $this;
+    }
+
+    public function getRootInode(): ?Inode
+    {
+        return $this->root_inode;
+    }
+
+    public function setRootInode(?Inode $root_inode): static
+    {
+        $this->root_inode = $root_inode;
 
         return $this;
     }
