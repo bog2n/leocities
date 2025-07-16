@@ -2,11 +2,11 @@
 
 namespace App\Service\Fs;
 
+define('App\Service\Fs\BLOCK_SIZE', 512);
+
 use App\Repository\ExtentRepository;
 
 class Allocator {
-    const BLOCK_SIZE = 512;
-
     public function __construct(private ExtentRepository $repository) {
     }
 
