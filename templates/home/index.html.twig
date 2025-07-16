@@ -15,4 +15,17 @@ or
 <a href="{{ path('app_register') }}">Register</a>
 {% endif %}
 
+<hr>
+
+here's 10 random websites:
+
+<ul>
+{% for website in websites %}
+	<li>
+		<a href="{{ path('app_website', {'user': website.username, 'slug': '' }) }}">{{ website.username }}</a>
+		<em>{{ website.website.description }}</em>
+	</li>
+{% endfor %}
+</ul>
+
 {% endblock %}
