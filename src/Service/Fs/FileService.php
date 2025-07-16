@@ -121,5 +121,48 @@ class FileService {
         $this->manager->remove($inode);
         $this->manager->flush();
     }
+
+    public function create($parent_id, $filename, $data) {
+        if ($this->root_inode === null) {
+            throw new HttpException\UnauthorizedHttpException;
+        }
+
+        $parent_inode = $this->inode_repository->findOneById($parent_id);
+        if ($parent_inode === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
+
+        $parent_dir = $parent_inode->getDir();
+        if ($parent_dir === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
+
+        $extent = $this->allocator->alloc(strlen($data));
+
+        $handle = fopen($this->block_file, "c");
+        if (!$handle) {
+            throw new \Exception("Can't open block file");
+        }
+        if (fseek($handle, $extent->getStart() * BLOCK_SIZE, SEEK_SET) === -1) {
+            throw new \Exception("Can't seek in block file");
+        }
+        if (!fwrite($handle, $data)) {
+            throw new \Exception("Can't write to block file");
+        }
+        if (!fclose($handle)) {
+            throw new \Exception("Can't close block file");
+        }
+
+        $inode = new Inode();
+        $inode->addExtent($extent);
+        $inode->setName($filename);
+        $this->manager->persist($inode);
+
+        $parent_dir->addChild($inode);
+        $this->manager->persist($parent_dir);
+        $this->manager->flush();
+
+        $this->manager->getConnection()->commit();
+    }
 }
 
