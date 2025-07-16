@@ -38,10 +38,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: false)]
     private ?Website $website = null;
 
-    #[ORM\Column]
+    #[ORM\Column(options: ["default" => 65536])]
     private ?int $quota_limit = null;
 
-    #[ORM\Column]
+    #[ORM\Column(options: ["default" => 0])]
     private ?int $quota_used = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
