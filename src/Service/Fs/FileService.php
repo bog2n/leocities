@@ -56,7 +56,7 @@ class FileService {
         }
         $parent = $parent_inode->getDir();
         if ($parent === null) {
-            throw new DirectoryAlreadyExists; // it's a file but we don't care
+            throw new Exception\DirectoryAlreadyExists; // it's a file but we don't care
         }
 
         $new = new Inode();
