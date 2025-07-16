@@ -11,6 +11,7 @@ use App\Entity\Dir;
 use App\Repository\DirRepository;
 use App\Repository\InodeRepository;
 use App\Service\Fs\Exception;
+use App\Service\Fs\Allocator;
 
 class FileService {
     private ?Inode $root_inode = null;
@@ -19,7 +20,9 @@ class FileService {
         private EntityManagerInterface $manager,
         private Security $security,
         private DirRepository $dir_repository,
-        private InodeRepository $inode_repository
+        private InodeRepository $inode_repository,
+        private Allocator $allocator,
+        private $block_file
     ) {
         $user = $security->getUser();
         if ($user !== null) {
@@ -92,6 +95,30 @@ class FileService {
 
         $inode->setName($name);
         $this->manager->persist($inode);
+        $this->manager->flush();
+    }
+
+    public function delete($inode_id) {
+        if ($this->root_inode === null) {
+            throw new HttpException\UnauthorizedHttpException;
+        }
+
+        $inode = $this->inode_repository->findOneById($inode_id);
+        if ($inode === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
+
+        $dir = $inode->getDir();
+        if ($dir !== null) {
+            if (count($dir->getChild()) !== 0) {
+                throw new Exception\DirectoryNotEmpty;
+            }
+            $this->manager->remove($dir);
+        } else {
+            $this->allocator->free($inode);
+        }
+
+        $this->manager->remove($inode);
         $this->manager->flush();
     }
 }
