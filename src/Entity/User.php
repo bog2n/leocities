@@ -38,6 +38,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: false)]
     private ?Website $website = null;
 
+    #[ORM\Column]
+    private ?int $quota_limit = null;
+
+    #[ORM\Column]
+    private ?int $quota_used = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -127,6 +133,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setWebsite(Website $website): static
     {
         $this->website = $website;
+
+        return $this;
+    }
+
+    public function getQuotaLimit(): ?int
+    {
+        return $this->quota_limit;
+    }
+
+    public function setQuotaLimit(int $quota_limit): static
+    {
+        $this->quota_limit = $quota_limit;
+
+        return $this;
+    }
+
+    public function getQuotaUsed(): ?int
+    {
+        return $this->quota_used;
+    }
+
+    public function setQuotaUsed(int $quota_used): static
+    {
+        $this->quota_used = $quota_used;
 
         return $this;
     }
