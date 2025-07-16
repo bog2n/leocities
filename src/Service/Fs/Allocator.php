@@ -8,11 +8,13 @@ use App\Repository\ExtentRepository;
 
 class Allocator {
     public function __construct(private ExtentRepository $repository) {
+        $this->em = $this->repository->getEntityManager();
     }
 
+    // tries to find allocate extents in block_file,
+    // caller must commit transaction itself
     public function alloc(int $length) {
-        $em = $this->repository->getEntityManager();
-        $conn = $em->getConnection();
+        $conn = $this->em->getConnection();
         $conn->beginTransaction();
 
         // acquire exclusive lock on extents
@@ -27,16 +29,18 @@ class Allocator {
         }
 
         $free->setLength($length);
-        $em->persist($free);
-        $em->flush($free);
-
-        $conn->commit();
+        $this->em->persist($free);
+        $this->em->flush($free);
 
         return $free;
     }
 
+    // frees extents owned by inode,
+    // caller must commit transaction itself
     public function free($inode) {
-        throw new \Exception("not implemented");
+        foreach ($inode->getExtent() as $extent) {
+            $this->em->remove($extent);
+        }
     }
 }
 
