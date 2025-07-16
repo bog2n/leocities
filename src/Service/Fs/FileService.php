@@ -79,5 +79,20 @@ class FileService {
 
         return $new_dir;
     }
+
+    public function rename($inode_id, $name) {
+        if ($this->root_inode === null) {
+            throw new HttpException\UnauthorizedHttpException;
+        }
+
+        $inode = $this->inode_repository->findOneById($inode_id);
+        if ($inode === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
+
+        $inode->setName($name);
+        $this->manager->persist($inode);
+        $this->manager->flush();
+    }
 }
 
