@@ -26,7 +26,6 @@ final class Version20250716154320 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_F63BD578727ACA70 ON inode (parent_id)');
         $this->addSql('ALTER TABLE dir ADD CONSTRAINT FK_BAAB7A10727ACA70 FOREIGN KEY (parent_id) REFERENCES inode (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE inode ADD CONSTRAINT FK_F63BD578727ACA70 FOREIGN KEY (parent_id) REFERENCES dir (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-		$this->addSql('ALTER TABLE inode ADD UNIQUE (name, parent_id)');
         $this->addSql('ALTER TABLE extent ADD inode_id INT DEFAULT NULL');
         $this->addSql('ALTER TABLE extent ADD CONSTRAINT FK_260E594871E72450 FOREIGN KEY (inode_id) REFERENCES inode (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('CREATE INDEX IDX_260E594871E72450 ON extent (inode_id)');
