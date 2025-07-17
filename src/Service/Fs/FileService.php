@@ -17,7 +17,7 @@ use App\Service\Fs\Allocator;
 use App\Service\Fs\Quota;
 
 class FileService {
-    private ?Inode $root_inode = null;
+    public ?Inode $root_inode = null;
 
     public function __construct(
         private EntityManagerInterface $manager,
@@ -203,6 +203,9 @@ class FileService {
             "id" => $inode_id,
             "owner" => $this->user->getId(),
         ]);
+        if ($inode === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
         if ($inode->isDir()) {
             throw new Exception\IsDirectoryException;
         }
@@ -259,7 +262,7 @@ class FileService {
         return $out;
     }
 
-    public function get_inode($filepath)
+    public function get_inode($filepath): Inode
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -295,6 +298,7 @@ class FileService {
                 break;
             }
         }
+
         if ($ok === null) {
             throw new HttpException\NotFoundHttpException;
         }
@@ -309,7 +313,15 @@ class FileService {
         }
         $this->initialize($this->user);
 
-        return $this->read($this->get_inode($filepath));
+        $file = $this->get_inode($filepath);
+        if ($file->isDir()) {
+            if (str_ends_with($file->getName(), '/')) {
+                $file = $this->get_inode($filepath.'index.html');
+            } else {
+                throw new Exception\IsDirectoryException;
+            }
+        }
+        return $this->read($file);
     }
 }
 
