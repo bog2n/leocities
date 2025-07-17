@@ -1,0 +1,25 @@
+
+<div id="listing">
+<table>
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>Size</td>
+        </tr>
+    </thead>
+    <tbody>
+{% for file in files %}
+    <tr>
+        <td>
+            {% if file[2] == -1 %}
+                <a href="" hx-target="#listing" hx-swap="outerHTML" hx-get="{{ path('file_get', {'id': file[0]}) }}">{{ file[1] }}</a>
+            {% else %}
+                <a href="{{ path('file_get', {'id': file[0]}) }}">{{ file[1] }}</a>
+            {% endif %}
+        </td>
+        <td>{{ file[2] == -1 ? '[DIR]' : file[2] }}</td>
+    </tr>
+{% endfor %}
+    </tbody>
+</table>
+</div>

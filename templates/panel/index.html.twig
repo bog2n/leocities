@@ -10,8 +10,14 @@
 
 <b>{{ app.user.username }}'s website!</b>
 
+<p>
+Quota used: {{ '%.2f'|format(app.user.QuotaUsed / 2 / 1024) }} MB / {{ '%.2f'|format(app.user.QuotaLimit / 2 / 1024) }} MB
+</p>
+
 {{ include('_info_form.html.twig') }}
 
 <hr>
+
+{{ render(path('file_get', {id: root_inode})) }}
 
 {% endblock %}
