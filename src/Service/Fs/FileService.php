@@ -11,6 +11,7 @@ use App\Entity\Inode;
 use App\Entity\Dir;
 use App\Repository\DirRepository;
 use App\Repository\InodeRepository;
+use App\Repository\UserRepository;
 use App\Service\Fs\Exception;
 use App\Service\Fs\Allocator;
 use App\Service\Fs\Quota;
@@ -21,6 +22,7 @@ class FileService {
     public function __construct(
         private EntityManagerInterface $manager,
         private Security $security,
+        private UserRepository $user_repository,
         private DirRepository $dir_repository,
         private InodeRepository $inode_repository,
         private Allocator $allocator,
@@ -290,6 +292,17 @@ class FileService {
             throw new HttpException\NotFoundHttpException;
         }
         return $el;
+    }
+
+    public function get_file($username, $filepath)
+    {
+        $user = $this->user_repository->findOneByUsername($username);
+        if ($user === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
+
+        $this->root_inode = $user->getRootInode();
+        return $this->read($this->get_inode($filepath));
     }
 }
 
