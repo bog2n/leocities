@@ -12,6 +12,7 @@ use App\Repository\DirRepository;
 use App\Repository\InodeRepository;
 use App\Service\Fs\Exception;
 use App\Service\Fs\Allocator;
+use App\Service\Fs\Quota;
 
 class FileService {
     private ?Inode $root_inode = null;
@@ -22,6 +23,7 @@ class FileService {
         private DirRepository $dir_repository,
         private InodeRepository $inode_repository,
         private Allocator $allocator,
+        private Quota $quota,
         private $block_file
     ) {
         $user = $security->getUser();
@@ -118,7 +120,8 @@ class FileService {
             }
             $this->manager->remove($dir);
         } else {
-            $this->allocator->free($inode);
+            $bytes_freed = $this->allocator->free($inode);
+            $this->quota->remove_blocks(ceil($bytes_freed/BLOCK_SIZE));
         }
 
         $this->manager->remove($inode);
@@ -141,7 +144,9 @@ class FileService {
             throw new HttpException\NotFoundHttpException;
         }
 
-        $extent = $this->allocator->alloc(strlen($data));
+        $len = strlen($data);
+        $this->quota->add_blocks(ceil($len/BLOCK_SIZE));
+        $extent = $this->allocator->alloc($len);
 
         $handle = fopen($this->block_file, "c");
         if (!$handle) {

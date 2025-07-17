@@ -14,6 +14,8 @@ class Allocator {
 
     // tries to find allocate extents in block_file,
     // caller must commit transaction itself
+    //
+    // returns allocated extent
     public function alloc(int $length)
     {
         $conn = $this->em->getConnection();
@@ -39,11 +41,16 @@ class Allocator {
 
     // frees extents owned by inode,
     // caller must commit transaction itself
+    //
+    // returns number of bytes freed
     public function free($inode)
     {
+        $len = 0;
         foreach ($inode->getExtent() as $extent) {
+            $len += $extent->getLength();
             $this->em->remove($extent);
         }
+        return $len;
     }
 }
 
