@@ -235,7 +235,7 @@ class FileService {
         return $out;
     }
 
-    // returns array of Array('name' => length) entries,
+    // returns array of Array(inode_id, 'name', length) entries,
     // length is set to -1 if entry is a directory
     public function list_dir($inode_id)
     {
@@ -256,7 +256,7 @@ class FileService {
 
         foreach ($dir->getChild() as $child) {
             $length = $this->inode_repository->getLength($child->getId());
-            $out[] = Array($child->getName(), $length);
+            $out[] = Array($child->getId(), $child->getName(), $length);
         }
 
         return $out;
