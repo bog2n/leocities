@@ -56,6 +56,7 @@ final class PanelController extends AbstractController
 		if ($inode->isDir()) {
 			return $this->render('panel/list.html.twig', [
 				'files' => $fs->list_dir($inode),
+				'root_inode' => $fs->root_inode->getId(), // TODO change
 			]);
 		}
 
@@ -70,6 +71,26 @@ final class PanelController extends AbstractController
 
 		return new Response($fs->read($inode), 200, [
 			"Content-Type" => $mime,
+		]);
+	}
+
+	#[Route('/panel/file/{id}/mkdir', methods: ['POST'], name: 'file_mkdir')]
+	public function file_mkdir(
+		FileService $fs,
+		InodeRepository $repository,
+		Request $request,
+		int $id
+	): Response
+	{
+		$name = $request->request->get('name');
+		if ($name === null) {
+			throw new HttpException\BadRequestException;
+		}
+		$fs->mkdir($id, $name);
+
+		return $this->render('panel/list.html.twig', [
+			'files' => $fs->list_dir($id),
+			'root_inode' => $fs->root_inode->getId(), // TODO change
 		]);
 	}
 }

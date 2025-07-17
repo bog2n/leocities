@@ -22,4 +22,10 @@
 {% endfor %}
     </tbody>
 </table>
+
+<form hx-post="{{ path('file_mkdir', {id: root_inode }) }}" hx-target="#listing">
+	<input type="text" name="name">
+	<button type="submit">mkdir</button>
+</form>
+
 </div>
