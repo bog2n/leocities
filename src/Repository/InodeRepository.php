@@ -16,7 +16,8 @@ class InodeRepository extends ServiceEntityRepository
         parent::__construct($registry, Inode::class);
     }
 
-    public function getLength($inode_id) {
+    public function getLength($inode_id)
+    {
         $result = $this->getEntityManager()
                        ->getConnection()
                        ->fetchNumeric('SELECT sum(length) FROM extent

@@ -45,7 +45,8 @@ class FileService {
         }
     }
 
-    public function mkdir($parent_id, $name) {
+    public function mkdir($parent_id, $name)
+    {
         if ($this->root_inode === null) {
             throw new HttpException\UnauthorizedHttpException;
         }
@@ -83,7 +84,8 @@ class FileService {
         return $new_dir;
     }
 
-    public function rename($inode_id, $name) {
+    public function rename($inode_id, $name)
+    {
         if ($this->root_inode === null) {
             throw new HttpException\UnauthorizedHttpException;
         }
@@ -98,7 +100,8 @@ class FileService {
         $this->manager->flush();
     }
 
-    public function delete($inode_id) {
+    public function delete($inode_id)
+    {
         if ($this->root_inode === null) {
             throw new HttpException\UnauthorizedHttpException;
         }
@@ -122,7 +125,8 @@ class FileService {
         $this->manager->flush();
     }
 
-    public function create($parent_id, $filename, $data) {
+    public function create($parent_id, $filename, $data)
+    {
         if ($this->root_inode === null) {
             throw new HttpException\UnauthorizedHttpException;
         }
@@ -165,7 +169,8 @@ class FileService {
         $this->manager->getConnection()->commit();
     }
 
-    public function read($inode_id) {
+    public function read($inode_id)
+    {
         if ($this->root_inode === null) {
             throw new HttpException\UnauthorizedHttpException;
         }
@@ -202,7 +207,8 @@ class FileService {
 
     // returns array of Array('name' => length) entries,
     // length is set to -1 if entry is a directory
-    public function list_dir($inode_id) {
+    public function list_dir($inode_id)
+    {
         if ($this->root_inode === null) {
             throw new HttpException\UnauthorizedHttpException;
         }

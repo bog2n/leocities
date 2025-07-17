@@ -16,11 +16,13 @@ class RandomWebsiteService
         private WebsiteRepository $repository,
     ) {}
 
-    public function getWebsites(): mixed {
+    public function getWebsites(): mixed
+    {
         return $this->cache->get('randomWebsites', $this->getCacheCallback());
     }
 
-    private function getCacheCallback() {
+    private function getCacheCallback()
+    {
         return function(ItemInterface $item) {
             $item->expiresAfter(self::WEBSITE_CACHE_EXPIRY_TIME);
             return $this->repository->getRandomWebsites(self::MAX_WEBSITES);

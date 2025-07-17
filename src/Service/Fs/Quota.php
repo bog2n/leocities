@@ -12,7 +12,8 @@ class Quota {
     ) {
     }
 
-    public function add_blocks($num) {
+    public function add_blocks($num)
+    {
         $user = $this->security->getUser();
         if ($user === null) {
             throw new \Exception("user not found");
@@ -36,7 +37,8 @@ class Quota {
         return $new_quota[0];
     }
 
-    public function remove_blocks($num) {
+    public function remove_blocks($num)
+    {
         $user = $this->security->getUser();
         if ($user === null) {
             throw new \Exception("user not found");

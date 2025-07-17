@@ -7,13 +7,15 @@ define('App\Service\Fs\BLOCK_SIZE', 512);
 use App\Repository\ExtentRepository;
 
 class Allocator {
-    public function __construct(private ExtentRepository $repository) {
+    public function __construct(private ExtentRepository $repository)
+    {
         $this->em = $this->repository->getEntityManager();
     }
 
     // tries to find allocate extents in block_file,
     // caller must commit transaction itself
-    public function alloc(int $length) {
+    public function alloc(int $length)
+    {
         $conn = $this->em->getConnection();
         $conn->beginTransaction();
 
@@ -37,7 +39,8 @@ class Allocator {
 
     // frees extents owned by inode,
     // caller must commit transaction itself
-    public function free($inode) {
+    public function free($inode)
+    {
         foreach ($inode->getExtent() as $extent) {
             $this->em->remove($extent);
         }
