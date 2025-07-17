@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -46,6 +48,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?Inode $root_inode = null;
+
+    /**
+     * @var Collection<int, Inode>
+     */
+    #[ORM\OneToMany(targetEntity: Inode::class, mappedBy: 'owner')]
+    private Collection $inodes;
+
+    public function __construct()
+    {
+        $this->inodes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -172,6 +185,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRootInode(?Inode $root_inode): static
     {
         $this->root_inode = $root_inode;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Inode>
+     */
+    public function getInodes(): Collection
+    {
+        return $this->inodes;
+    }
+
+    public function addInode(Inode $inode): static
+    {
+        if (!$this->inodes->contains($inode)) {
+            $this->inodes->add($inode);
+            $inode->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInode(Inode $inode): static
+    {
+        if ($this->inodes->removeElement($inode)) {
+            // set the owning side to null (unless already changed)
+            if ($inode->getOwner() === $this) {
+                $inode->setOwner(null);
+            }
+        }
 
         return $this;
     }

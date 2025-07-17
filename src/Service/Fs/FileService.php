@@ -26,18 +26,18 @@ class FileService {
         private Quota $quota,
         private $block_file
     ) {
-        $user = $security->getUser();
-        if ($user !== null) {
-            $this->root_inode = $user->getRootInode();
+        $this->user = $security->getUser();
+        if ($this->user !== null) {
+            $this->root_inode = $this->user->getRootInode();
 
             // initialize root directory
             if ($this->root_inode === null) {
-                $this->root_inode = new Inode();
+                $this->root_inode = new Inode($this->user);
                 $this->root_inode->setName('/');
                 $manager->persist($this->root_inode);
 
-                $user->setRootInode($this->root_inode);
-                $manager->persist($user);
+                $this->user->setRootInode($this->root_inode);
+                $manager->persist($this->user);
 
                 $root = new Dir();
                 $root->setParent($this->root_inode);
@@ -53,7 +53,10 @@ class FileService {
             throw new HttpException\UnauthorizedHttpException;
         }
 
-        $parent_inode = $this->inode_repository->findOneById($parent_id);
+        $parent_inode = $this->inode_repository->findOneBy([
+            "id" => $parent_id,
+            "owner" => $this->user->getId(),
+        ]);
         if ($parent_inode === null) {
             throw new HttpException\NotFoundHttpException;
         }
@@ -62,7 +65,7 @@ class FileService {
             throw new Exception\DirectoryAlreadyExists; // it's a file but we don't care
         }
 
-        $new = new Inode();
+        $new = new Inode($this->user);
         $new->setName($name);
         $this->manager->persist($new);
 
@@ -92,7 +95,10 @@ class FileService {
             throw new HttpException\UnauthorizedHttpException;
         }
 
-        $inode = $this->inode_repository->findOneById($inode_id);
+        $inode = $this->inode_repository->findOneBy([
+            "id" => $inode_id,
+            "owner" => $this->user->getId(),
+        ]);
         if ($inode === null) {
             throw new HttpException\NotFoundHttpException;
         }
@@ -108,7 +114,10 @@ class FileService {
             throw new HttpException\UnauthorizedHttpException;
         }
 
-        $inode = $this->inode_repository->findOneById($inode_id);
+        $inode = $this->inode_repository->findOneBy([
+            "id" => $inode_id,
+            "owner" => $this->user->getId(),
+        ]);
         if ($inode === null) {
             throw new HttpException\NotFoundHttpException;
         }
@@ -134,7 +143,10 @@ class FileService {
             throw new HttpException\UnauthorizedHttpException;
         }
 
-        $parent_inode = $this->inode_repository->findOneById($parent_id);
+        $parent_inode = $this->inode_repository->findOneBy([
+            "id" => $parent_id,
+            "owner" => $this->user->getId(),
+        ]);
         if ($parent_inode === null) {
             throw new HttpException\NotFoundHttpException;
         }
@@ -162,7 +174,7 @@ class FileService {
             throw new \Exception("Can't close block file");
         }
 
-        $inode = new Inode();
+        $inode = new Inode($this->user);
         $inode->addExtent($extent);
         $inode->setName($filename);
         $this->manager->persist($inode);
@@ -180,7 +192,10 @@ class FileService {
             throw new HttpException\UnauthorizedHttpException;
         }
 
-        $inode = $this->inode_repository->findOneById($inode_id);
+        $inode = $this->inode_repository->findOneBy([
+            "id" => $inode_id,
+            "owner" => $this->user->getId(),
+        ]);
         if ($inode->isDir()) {
             throw new Exception\IsDirectoryException;
         }
@@ -218,7 +233,10 @@ class FileService {
             throw new HttpException\UnauthorizedHttpException;
         }
 
-        $inode = $this->inode_repository->findOneById($inode_id);
+        $inode = $this->inode_repository->findOneBy([
+            "id" => $inode_id,
+            "owner" => $this->user->getId(),
+        ]);
         $dir = $inode->getDir();
         if ($dir === null) {
             throw new Exception\IsFileException;

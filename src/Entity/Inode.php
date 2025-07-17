@@ -31,9 +31,13 @@ class Inode
     #[ORM\ManyToOne(inversedBy: 'child')]
     private ?Dir $parent = null;
 
-    public function __construct()
+    #[ORM\ManyToOne(inversedBy: 'inodes')]
+    private ?User $owner = null;
+
+    public function __construct(User $user)
     {
         $this->extent = new ArrayCollection();
+        $this->owner = $user;
     }
 
     public function getId(): ?int
@@ -118,6 +122,18 @@ class Inode
     public function setParent(?Dir $parent): static
     {
         $this->parent = $parent;
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }
