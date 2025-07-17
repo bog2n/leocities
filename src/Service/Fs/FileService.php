@@ -49,6 +49,17 @@ class FileService {
             $root = new Dir();
             $root->setParent($this->root_inode);
 
+            $current = new Inode($this->user);
+            $current->setName('.');
+
+            $back = new Inode($this->user);
+            $back->setName('..');
+
+            $root->addChild($current);
+            $root->addChild($back);
+
+            $this->manager->persist($current);
+            $this->manager->persist($back);
             $this->manager->persist($root);
             $this->manager->flush();
         }
@@ -76,12 +87,24 @@ class FileService {
         $new->setName($name);
         $this->manager->persist($new);
 
+        $parent->addChild($new);
+        $this->manager->persist($parent);
+
         $new_dir = new Dir();
         $new_dir->setParent($new);
         $this->manager->persist($new_dir);
 
-        $parent->addChild($new);
-        $this->manager->persist($parent);
+        $current = new Inode($this->user);
+        $current->setName('.');
+
+        $back = new Inode($this->user);
+        $back->setName('..');
+
+        $new_dir->addChild($current);
+        $new_dir->addChild($back);
+
+        $this->manager->persist($current);
+        $this->manager->persist($back);
 
         try {
             $this->manager->flush();
@@ -270,39 +293,29 @@ class FileService {
 
         $filepath = Path::canonicalize($filepath);
         $paths = explode('/', $filepath);
-        $current = $this->root_inode->getDir();
+        $current = $this->root_inode;
         if ($current === null) {
             throw new HttpException\NotFoundHttpException;
         }
+        if ($filepath === "") {
+            return $current;
+        }
 
-        // traverse directories
-        // TODO: caching this would be good idea
-        for ($i = 0; $i < count($paths)-1; $i++) {
-            $ok = null;
-            foreach ($current->getChild() as $el) {
-                if ($el->getName() == $paths[$i]) {
-                    $ok = $el->getDir();
+        for ($i = 0; $i < count($paths); $i++) {
+            foreach ($current->getDir()->getChild() as $child) {
+                $current = null;
+                if ($child->getName() === $paths[$i]) {
+                    $current = $child;
                     break;
                 }
             }
-            if ($ok === null) {
+
+            if ($current === null) {
                 throw new HttpException\NotFoundHttpException;
             }
-            $current = $ok;
         }
 
-        $ok = null;
-        foreach ($current->getChild() as $el) {
-            if ($el->getName() == $paths[$i]) {
-                $ok = $el;
-                break;
-            }
-        }
-
-        if ($ok === null) {
-            throw new HttpException\NotFoundHttpException;
-        }
-        return $el;
+        return $current;
     }
 
     public function get_file($username, $filepath)
@@ -315,7 +328,7 @@ class FileService {
 
         $file = $this->get_inode($filepath);
         if ($file->isDir()) {
-            if (str_ends_with($file->getName(), '/')) {
+            if (str_ends_with($filepath, '/') || $filepath === "") {
                 $file = $this->get_inode($filepath.'index.html');
             } else {
                 throw new Exception\IsDirectoryException;
