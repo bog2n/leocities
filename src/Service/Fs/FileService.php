@@ -4,6 +4,7 @@ namespace App\Service\Fs;
 
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception as HttpException;
+use Symfony\Component\Filesystem\Path;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\DBAL\Exception as DBException;
 use App\Entity\Inode;
@@ -250,6 +251,45 @@ class FileService {
         }
 
         return $out;
+    }
+
+    public function get_inode($filepath)
+    {
+        if ($this->root_inode === null) {
+            throw new HttpException\UnauthorizedHttpException;
+        }
+
+        $filepath = Path::canonicalize($filepath);
+        $paths = explode('/', $filepath);
+        $current = $this->root_inode->getDir();
+
+        // traverse directories
+        // TODO: caching this would be good idea
+        for ($i = 0; $i < count($paths)-1; $i++) {
+            $ok = null;
+            foreach ($current->getChild() as $el) {
+                if ($el->getName() == $paths[$i]) {
+                    $ok = $el->getDir();
+                    break;
+                }
+            }
+            if ($ok === null) {
+                throw new HttpException\NotFoundHttpException;
+            }
+            $current = $ok;
+        }
+
+        $ok = null;
+        foreach ($current->getChild() as $el) {
+            if ($el->getName() == $paths[$i]) {
+                $ok = $el;
+                break;
+            }
+        }
+        if ($ok === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
+        return $el;
     }
 }
 
