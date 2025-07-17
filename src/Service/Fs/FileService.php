@@ -31,29 +31,33 @@ class FileService {
     ) {
         $this->user = $security->getUser();
         if ($this->user !== null) {
-            $this->root_inode = $this->user->getRootInode();
+            $this->initialize($this->user);
+        }
+    }
 
-            // initialize root directory
-            if ($this->root_inode === null) {
-                $this->root_inode = new Inode($this->user);
-                $this->root_inode->setName('/');
-                $manager->persist($this->root_inode);
+    private function initialize($user) {
+        $this->root_inode = $user->getRootInode();
 
-                $this->user->setRootInode($this->root_inode);
-                $manager->persist($this->user);
+        // initialize root directory
+        if ($this->root_inode === null) {
+            $this->root_inode = new Inode($this->user);
+            $this->root_inode->setName('/');
 
-                $root = new Dir();
-                $root->setParent($this->root_inode);
-                $manager->persist($root);
-                $manager->flush();
-            }
+            $this->user->setRootInode($this->root_inode);
+            $this->manager->persist($this->user);
+
+            $root = new Dir();
+            $root->setParent($this->root_inode);
+
+            $this->manager->persist($root);
+            $this->manager->flush();
         }
     }
 
     public function mkdir($parent_id, $name)
     {
         if ($this->root_inode === null) {
-            throw new HttpException\UnauthorizedHttpException;
+            throw new HttpException\AccessDeniedHttpException;
         }
 
         $parent_inode = $this->inode_repository->findOneBy([
@@ -95,7 +99,7 @@ class FileService {
     public function rename($inode_id, $name)
     {
         if ($this->root_inode === null) {
-            throw new HttpException\UnauthorizedHttpException;
+            throw new HttpException\AccessDeniedHttpException;
         }
 
         $inode = $this->inode_repository->findOneBy([
@@ -114,7 +118,7 @@ class FileService {
     public function delete($inode_id)
     {
         if ($this->root_inode === null) {
-            throw new HttpException\UnauthorizedHttpException;
+            throw new HttpException\AccessDeniedHttpException;
         }
 
         $inode = $this->inode_repository->findOneBy([
@@ -143,7 +147,7 @@ class FileService {
     public function create($parent_id, $filename, $data)
     {
         if ($this->root_inode === null) {
-            throw new HttpException\UnauthorizedHttpException;
+            throw new HttpException\AccessDeniedHttpException;
         }
 
         $parent_inode = $this->inode_repository->findOneBy([
@@ -192,7 +196,7 @@ class FileService {
     public function read($inode_id)
     {
         if ($this->root_inode === null) {
-            throw new HttpException\UnauthorizedHttpException;
+            throw new HttpException\AccessDeniedHttpException;
         }
 
         $inode = $this->inode_repository->findOneBy([
@@ -233,7 +237,7 @@ class FileService {
     public function list_dir($inode_id)
     {
         if ($this->root_inode === null) {
-            throw new HttpException\UnauthorizedHttpException;
+            throw new HttpException\AccessDeniedHttpException;
         }
 
         $inode = $this->inode_repository->findOneBy([
@@ -258,12 +262,15 @@ class FileService {
     public function get_inode($filepath)
     {
         if ($this->root_inode === null) {
-            throw new HttpException\UnauthorizedHttpException;
+            throw new HttpException\AccessDeniedHttpException;
         }
 
         $filepath = Path::canonicalize($filepath);
         $paths = explode('/', $filepath);
         $current = $this->root_inode->getDir();
+        if ($current === null) {
+            throw new HttpException\NotFoundHttpException;
+        }
 
         // traverse directories
         // TODO: caching this would be good idea
@@ -296,12 +303,12 @@ class FileService {
 
     public function get_file($username, $filepath)
     {
-        $user = $this->user_repository->findOneByUsername($username);
-        if ($user === null) {
+        $this->user = $this->user_repository->findOneByUsername($username);
+        if ($this->user === null) {
             throw new HttpException\NotFoundHttpException;
         }
+        $this->initialize($this->user);
 
-        $this->root_inode = $user->getRootInode();
         return $this->read($this->get_inode($filepath));
     }
 }
