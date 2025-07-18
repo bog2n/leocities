@@ -12,31 +12,61 @@
     <tbody>
 {% for file in files %}
     <tr>
+        {% if not loop.first or is_root_dir %}
         <td>
             {% if file[2] == -1 %}
-                <a href="" hx-target="#listing" hx-swap="outerHTML" hx-get="{{ path('file_get', {'id': file[0]}) }}">{{ file[1] }}</a>
+                <a href=""
+                    hx-target="#listing"
+                    hx-swap="outerHTML"
+                    hx-get="{{ path('file_get', {'id': file[0]}) }}"
+                >→</a>
+                <input
+                    hx-post="{{ path('file_update', {id: file[0]}) }}"
+                    hx-trigger="focusout"
+                    hx-target="#listing"
+                    hx-swap="outerHTML"
+                    hx-target-4*="#error"
+                    type="text"
+                    name="name"
+                    value="{{ file[1] }}"
+                />
             {% else %}
-                <a href="{{ path('file_get', {'id': file[0]}) }}">{{ file[1] }}</a>
+                <a href="{{ path('file_get', {id: file[0]}) }}">→</a>
+                <input
+                    hx-post="{{ path('file_update', {id: file[0]}) }}"
+                    hx-trigger="focusout"
+                    hx-target="#listing"
+                    hx-swap="outerHTML"
+                    hx-target-4*="#error"
+                    type="text"
+                    name="name"
+                    value="{{ file[1] }}"
+                />
             {% endif %}
         </td>
         <td>{{ file[2] == -1 ? '[DIR]' : file[2] }}</td>
         <td>
-            {% if not loop.first or is_root_dir %}
                 <button hx-swap="outerHTML" hx-target="#listing" hx-target-4*="#error" hx-delete="{{ path('file_delete', {'id': file[0]}) }}">Delete</button>
-            {% endif %}
         </td>
+        {% else %}
+        <td>
+            <a hx-target="#listing" hx-swap="outerHTML" hx-get="{{ path('file_get', {'id': file[0]}) }}" href="">→</a>
+            ..
+        </td>
+        <td>[DIR]</td>
+        {% endif %}
     </tr>
 {% endfor %}
     </tbody>
 </table>
 
 <form
-	hx-post="{{ path('file_mkdir', {id: root_inode }) }}"
-	hx-target="#listing"
-	hx-swap="outerHTML"
+    hx-post="{{ path('file_mkdir', {id: root_inode }) }}"
+    hx-target="#listing"
+    hx-swap="outerHTML"
 >
-	<input type="text" name="name">
-	<button type="submit">mkdir</button>
+    <input type="text" name="name">
+    <button type="submit">mkdir</button>
 </form>
 
 {{ render(path('file_create', {id: root_inode})) }}

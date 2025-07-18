@@ -5,8 +5,8 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Exception as HttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpKernel\Exception as HttpException;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Mime\MimeTypes;
 use Doctrine\ORM\EntityManagerInterface;
@@ -162,5 +162,33 @@ final class PanelController extends AbstractController
                 'root_inode' => $id,
             ]);
         }
+    }
+
+    #[Route('/panel/file/{id}', methods: ['POST'], name: 'file_update')]
+    public function file_update(
+        int $id,
+        Request $request,
+        InodeRepository $repository,
+        FileService $fs
+    ): Response
+    {
+        $name = $request->request->get('name');
+        if ($name === "") {
+            return new Response("Name can't be null", 400);
+        }
+
+        $file = $repository->findOneBy([
+            "id" => $id,
+            "owner" => $this->getUser(),
+        ]);
+
+        $fs->rename($id, $name);
+
+        $parent = $file->getParent()->getParent()->getId();
+        return $this->render('panel/list.html.twig', [
+            'files' => $fs->list_dir($parent),
+            'root_inode' => $parent,
+            'is_root_dir' => $fs->root_inode->getId() == $parent,
+        ]);
     }
 }
