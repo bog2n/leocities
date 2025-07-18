@@ -1,0 +1,11 @@
+<form
+	enctype="multipart/form-data"
+	hx-post="{{ path('file_create', {id: root_inode}) }}"
+	hx-target-4*="#error"
+	hx-target="#listing"
+	hx-swap="outerHTML"
+>
+	<div><label for="upload_file" class="required">Upload file</label><input type="file" id="upload_file" name="upload[file][]" required="required" multiple="multiple" /></div>
+	<button type="submit" class="btn">Upload</button>
+	<input type="hidden" id="upload__token" name="upload[_token]" data-controller="csrf-protection" value="csrf-token" /></form>
+</form>

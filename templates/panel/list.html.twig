@@ -1,7 +1,7 @@
+<div id="listing">
 
 <div id="error"></div>
 
-<div id="listing">
 <table>
     <thead>
         <tr>
@@ -22,7 +22,7 @@
         <td>{{ file[2] == -1 ? '[DIR]' : file[2] }}</td>
         <td>
             {% if not loop.first or is_root_dir %}
-                <button hx-target="#listing" hx-target-406="#error" hx-delete="{{ path('file_delete', {'id': file[0]}) }}">Delete</button>
+                <button hx-swap="outerHTML" hx-target="#listing" hx-target-4*="#error" hx-delete="{{ path('file_delete', {'id': file[0]}) }}">Delete</button>
             {% endif %}
         </td>
     </tr>
@@ -30,9 +30,15 @@
     </tbody>
 </table>
 
-<form hx-post="{{ path('file_mkdir', {id: root_inode }) }}" hx-target="#listing">
+<form
+	hx-post="{{ path('file_mkdir', {id: root_inode }) }}"
+	hx-target="#listing"
+	hx-swap="outerHTML"
+>
 	<input type="text" name="name">
 	<button type="submit">mkdir</button>
 </form>
+
+{{ render(path('file_create', {id: root_inode})) }}
 
 </div>

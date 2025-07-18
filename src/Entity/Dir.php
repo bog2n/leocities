@@ -22,6 +22,7 @@ class Dir
      * @var Collection<int, Inode>
      */
     #[ORM\OneToMany(targetEntity: Inode::class, mappedBy: 'parent')]
+    #[ORM\OrderBy(['name' => 'ASC'])]
     private Collection $child;
 
     public function __construct()
