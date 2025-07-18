@@ -1,4 +1,6 @@
 
+<div id="error"></div>
+
 <div id="listing">
 <table>
     <thead>
@@ -18,6 +20,11 @@
             {% endif %}
         </td>
         <td>{{ file[2] == -1 ? '[DIR]' : file[2] }}</td>
+        <td>
+            {% if not loop.first or is_root_dir %}
+                <button hx-target="#listing" hx-target-406="#error" hx-delete="{{ path('file_delete', {'id': file[0]}) }}">Delete</button>
+            {% endif %}
+        </td>
     </tr>
 {% endfor %}
     </tbody>

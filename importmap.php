@@ -26,6 +26,9 @@ return [
         'version' => '7.3.0',
     ],
     'htmx.org' => [
-        'version' => '2.0.6',
+        'version' => '2.0.4',
+    ],
+    'htmx-ext-response-targets' => [
+        'version' => '2.0.3',
     ],
 ];

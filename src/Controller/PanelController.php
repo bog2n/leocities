@@ -12,6 +12,7 @@ use Symfony\Component\Mime\MimeTypes;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Form\DescriptionType;
 use App\Service\Fs\FileService;
+use App\Service\Fs\Exception;
 use App\Repository\InodeRepository;
 
 final class PanelController extends AbstractController
@@ -61,6 +62,7 @@ final class PanelController extends AbstractController
 			return $this->render('panel/list.html.twig', [
 				'files' => $fs->list_dir($inode),
 				'root_inode' => $inode->getId(),
+				'is_root_dir' => $fs->root_inode->getId() == $inode->getId(),
 			]);
 		}
 
@@ -95,6 +97,34 @@ final class PanelController extends AbstractController
 		return $this->render('panel/list.html.twig', [
 			'files' => $fs->list_dir($id),
 			'root_inode' => $fs->root_inode->getId(),
+			'is_root_dir' => $fs->root_inode->getId() == $id,
+		]);
+	}
+
+	#[Route('/panel/file/{id}', methods: ['DELETE'], name: 'file_delete')]
+	public function file_delete(
+		FileService $fs,
+		InodeRepository $repository,
+		Request $request,
+		int $id,
+	): Response
+	{
+		$file = $repository->findOneBy([
+			"id" => $id,
+			"owner" => $this->getUser(),
+		]);
+
+		$parent = $file->getParent()->getParent()->getId();
+		try {
+			$fs->delete($id);
+		} catch (Exception\DirectoryNotEmpty) {
+			return new Response("Directory not empty", 406);
+		}
+
+		return $this->render('panel/list.html.twig', [
+			'files' => $fs->list_dir($parent),
+			'root_inode' => $parent,
+			'is_root_dir' => $fs->root_inode->getId() == $parent,
 		]);
 	}
 }
