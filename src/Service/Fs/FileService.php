@@ -282,15 +282,16 @@ class FileService {
         }
 
         for ($i = 0; $i < count($paths); $i++) {
+            $ok = false;
             foreach ($current->getDir()->getChild() as $child) {
-                $current = null;
                 if ($child->getName() === $paths[$i]) {
                     $current = $child;
+                    $ok = true;
                     break;
                 }
             }
 
-            if ($current === null) {
+            if ($ok === false) {
                 throw new HttpException\NotFoundHttpException;
             }
         }
@@ -308,7 +309,8 @@ class FileService {
 
         $file = $this->get_inode($filepath);
         if ($file->isDir()) {
-            if (str_ends_with($filepath, '/') || $filepath === "") {
+            // try to get index.html
+            if (str_ends_with($filepath, '/') || $filepath === '') {
                 $file = $this->get_inode($filepath.'index.html');
             } else {
                 throw new Exception\IsDirectoryException;
