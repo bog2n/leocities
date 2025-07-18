@@ -122,11 +122,13 @@ final class PanelController extends AbstractController
             return new Response("Directory not empty", 406);
         }
 
-        return $this->render('panel/list.html.twig', [
+        $resp = $this->render('panel/list.html.twig', [
             'files' => $fs->list_dir($parent),
             'root_inode' => $parent,
             'is_root_dir' => $fs->root_inode->getId() == $parent,
         ]);
+        $resp->headers->set('HX-Trigger', 'quota-update');
+        return $resp;
     }
 
     #[Route('/panel/file/{id}/new', methods: ['POST', 'GET'], name: 'file_create')]
@@ -149,11 +151,13 @@ final class PanelController extends AbstractController
                     );
                 }
 
-                return $this->render('panel/list.html.twig', [
+                $resp = $this->render('panel/list.html.twig', [
                     'files' => $fs->list_dir($id),
                     'root_inode' => $id,
                     'is_root_dir' => $fs->root_inode->getId() == $id,
                 ]);
+                $resp->headers->set('HX-Trigger', 'quota-update');
+                return $resp;
             } else {
                 throw new HttpException\BadRequestException;
             }
@@ -190,5 +194,13 @@ final class PanelController extends AbstractController
             'root_inode' => $parent,
             'is_root_dir' => $fs->root_inode->getId() == $parent,
         ]);
+    }
+
+    #[Route('/panel/quota', methods: ['GET'], name: 'get_quota')]
+    public function get_quota(): Response
+    {
+        return new Response(sprintf('%.2fMB / %.2fMB',
+            $this->getUser()->getQuotaUsed()/2048,
+            $this->getUser()->getQuotaLimit()/2048));
     }
 }

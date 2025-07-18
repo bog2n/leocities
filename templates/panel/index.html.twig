@@ -11,7 +11,7 @@
 <b>{{ app.user.username }}'s website!</b>
 
 <p>
-Quota used: {{ '%.2f'|format(app.user.QuotaUsed / 2 / 1024) }} MB / {{ '%.2f'|format(app.user.QuotaLimit / 2 / 1024) }} MB
+Quota used: <span hx-trigger="quota-update from:body" hx-get="{{ path('get_quota') }}">{{ '%.2f'|format(app.user.QuotaUsed / 2 / 1024) }} MB / {{ '%.2f'|format(app.user.QuotaLimit / 2 / 1024) }} MB</span>
 </p>
 
 {{ include('_info_form.html.twig') }}
