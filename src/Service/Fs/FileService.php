@@ -188,7 +188,16 @@ class FileService {
 
         $parent_dir->addChild($inode);
         $this->manager->persist($parent_dir);
-        $this->manager->flush();
+
+        try {
+            $this->manager->flush();
+        } catch (\Exception $e) {
+            if ($e instanceof DBException\UniqueConstraintViolationException) {
+                throw new Exception\FileAlreadyExists;
+            } else {
+                throw $e;
+            }
+        }
 
         $this->manager->getConnection()->commit();
     }

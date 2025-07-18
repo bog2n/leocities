@@ -93,7 +93,14 @@ final class PanelController extends AbstractController
         if ($name === null) {
             throw new HttpException\BadRequestException;
         }
-        $fs->mkdir($id, $name);
+        try {
+            $fs->mkdir($id, $name);
+        } catch (\Exception $e) {
+            if ($e instanceof Exception\DirectoryAlreadyExists) {
+                return new Response('Already exists', 409, []);
+            }
+            throw $e;
+        }
 
         return $this->render('panel/list.html.twig', [
             'files' => $fs->list_dir($id),
@@ -138,17 +145,33 @@ final class PanelController extends AbstractController
         FileService $fs
     ): Response
     {
-        if ($request->getMethod() === "POST") {
-            $upload_form = $this->createForm(UploadType::class);
-            $upload_form->handleRequest($request);
+        $upload_form = $this->createForm(UploadType::class);
+        $upload_form->handleRequest($request);
 
-            if ($upload_form->isSubmitted() && $upload_form->isValid()) {
+        if ($request->getMethod() === "POST" && $upload_form->isSubmitted()) {
+            if ($upload_form->isValid()) {
+                $ok = true;
+                $errors = '';
+
                 foreach ($upload_form['file']->getData() as $file) {
-                    $fs->create(
-                        $id,
-                        $file->getClientoriginalName(),
-                        $file->getContent()
-                    );
+                    try {
+                        $fs->create(
+                            $id,
+                            $file->getClientoriginalName(),
+                            $file->getContent()
+                        );
+                    } catch (\Exception $e) {
+                        $ok = false;
+                        if ($e instanceof Exception\FileAlreadyExists) {
+                            $errors .= $e->getMessage().'<br>';
+                        } else {
+                            throw $e;
+                        }
+                    }
+                }
+
+                if (!$ok) {
+                    return new Response($errors, 400);
                 }
 
                 $resp = $this->render('panel/list.html.twig', [
@@ -159,7 +182,7 @@ final class PanelController extends AbstractController
                 $resp->headers->set('HX-Trigger', 'quota-update');
                 return $resp;
             } else {
-                throw new HttpException\BadRequestException;
+                return new Response("Can't upload file", 400);
             }
         } else {
             return $this->render('panel/new.html.twig', [

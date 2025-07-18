@@ -63,6 +63,7 @@
 <form
     hx-post="{{ path('file_mkdir', {id: root_inode }) }}"
     hx-target="#listing"
+    hx-target-4*="#error"
     hx-swap="outerHTML"
 >
     <input type="text" name="name">
