@@ -254,7 +254,7 @@ class FileService {
 
         $out = Array();
         if ($inode->getParent() !== null) {
-            $out[] = Array($inode->getParent()->getId(), '..', -1);
+            $out[] = Array($inode->getParent()->getParent()->getId(), '..', -1);
         }
 
         foreach ($dir->getChild() as $child) {

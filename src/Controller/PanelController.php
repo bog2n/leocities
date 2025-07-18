@@ -94,7 +94,7 @@ final class PanelController extends AbstractController
 
 		return $this->render('panel/list.html.twig', [
 			'files' => $fs->list_dir($id),
-			'root_inode' => $fs->root_inode->getId(), // TODO change
+			'root_inode' => $fs->root_inode->getId(),
 		]);
 	}
 }
