@@ -19,7 +19,8 @@ final class PanelController extends AbstractController
     #[Route('/panel/', name: 'app_panel')]
 	public function index(
 		Request $request,
-		EntityManagerInterface $manager
+		EntityManagerInterface $manager,
+		FileService $fs
 	): Response
     {
 		$user = $this->getUser();
@@ -36,7 +37,7 @@ final class PanelController extends AbstractController
 		return $this->render('panel/index.html.twig', [
 			'user' => $user,
 			'info_form' => $info_form,
-			'root_inode' => $user->getRootInode()->getId(),
+			'root_inode' => $fs->root_inode->getId(),
 		]);
     }
 
@@ -48,7 +49,10 @@ final class PanelController extends AbstractController
 		int $id
 	): Response
 	{
-		$inode = $repository->findOneById($id);
+		$inode = $repository->findOneBy([
+			"id" => $id,
+			"owner" => $this->getUser(),
+		]);
 		if ($inode === null) {
 			throw new HttpException\NotFoundHttpException;
 		}
@@ -56,7 +60,7 @@ final class PanelController extends AbstractController
 		if ($inode->isDir()) {
 			return $this->render('panel/list.html.twig', [
 				'files' => $fs->list_dir($inode),
-				'root_inode' => $fs->root_inode->getId(), // TODO change
+				'root_inode' => $inode->getId(),
 			]);
 		}
 

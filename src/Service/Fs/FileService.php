@@ -49,17 +49,6 @@ class FileService {
             $root = new Dir();
             $root->setParent($this->root_inode);
 
-            $current = new Inode($this->user);
-            $current->setName('.');
-
-            $back = new Inode($this->user);
-            $back->setName('..');
-
-            $root->addChild($current);
-            $root->addChild($back);
-
-            $this->manager->persist($current);
-            $this->manager->persist($back);
             $this->manager->persist($root);
             $this->manager->flush();
         }
@@ -93,18 +82,6 @@ class FileService {
         $new_dir = new Dir();
         $new_dir->setParent($new);
         $this->manager->persist($new_dir);
-
-        $current = new Inode($this->user);
-        $current->setName('.');
-
-        $back = new Inode($this->user);
-        $back->setName('..');
-
-        $new_dir->addChild($current);
-        $new_dir->addChild($back);
-
-        $this->manager->persist($current);
-        $this->manager->persist($back);
 
         try {
             $this->manager->flush();
@@ -276,6 +253,9 @@ class FileService {
         }
 
         $out = Array();
+        if ($inode->getParent() !== null) {
+            $out[] = Array($inode->getParent()->getId(), '..', -1);
+        }
 
         foreach ($dir->getChild() as $child) {
             $length = $this->inode_repository->getLength($child->getId());
