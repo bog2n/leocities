@@ -42,16 +42,16 @@ class FileService {
         }
     }
 
-	/**
-	 * Creates directory in specified parent directory
-	 *
-	 * @param int|Inode $parent_id target directory
-	 * @param string    $name      director name
-	 *
-	 * @return Dir created directory
-	 *
-	 * @throws Exception\DirectoryAlreadyExists    if directory or file already exists
-	 */
+    /**
+     * Creates directory in specified parent directory
+     *
+     * @param int|Inode $parent_id target directory
+     * @param string    $name      director name
+     *
+     * @return Dir created directory
+     *
+     * @throws Exception\DirectoryAlreadyExists    if directory or file already exists
+     */
     public function mkdir(int|Inode $parent_id, string $name): Dir
     {
         if ($this->root_inode === null) {
@@ -94,14 +94,14 @@ class FileService {
         return $newDir;
     }
 
-	/**
-	 * Renames specified file or directory
-	 *
-	 * @param int|Inode $inode_id target inode
-	 * @param string    $name     desired filename
-	 *
-	 * @throws Exception\FileAlreadyExists when there is a file with the same filename
-	 */
+    /**
+     * Renames specified file or directory
+     *
+     * @param int|Inode $inode_id target inode
+     * @param string    $name     desired filename
+     *
+     * @throws Exception\FileAlreadyExists when there is a file with the same filename
+     */
     public function rename(int|Inode $inode_id, string $name): void
     {
         if ($this->root_inode === null) {
@@ -117,7 +117,7 @@ class FileService {
         }
 
         $inode->setName($name);
-		$inode->setLastModified(new \DateTime());
+        $inode->setLastModified(new \DateTime());
         $this->manager->persist($inode);
         try {
             $this->manager->flush();
@@ -129,16 +129,16 @@ class FileService {
             }
         }
 
-		return;
+        return;
     }
 
-	/**
-	 * Deletes specified file or directory
-	 *
-	 * @param int|Inode $inode_id target inode
-	 *
-	 * @throws DirectoryNotEmpty when target inode is directory and it's not empty
-	 */
+    /**
+     * Deletes specified file or directory
+     *
+     * @param int|Inode $inode_id target inode
+     *
+     * @throws DirectoryNotEmpty when target inode is directory and it's not empty
+     */
     public function delete(int|Inode $inode_id): void
     {
         if ($this->root_inode === null) {
@@ -167,19 +167,19 @@ class FileService {
         $this->manager->remove($inode);
         $this->manager->flush();
 
-		return;
+        return;
     }
 
-	/**
-	 * Creates file in specified directory.
-	 *
-	 * @param int|Inode $parent_id target directory
-	 * @param string    $filename  filename of new file
-	 * @param string    $data      content of new file
-	 *
-	 * @throws Exception\FileAlreadyExists when there is already file with target filename
-	 * @throws QuotaLimitExceeded when file content exceeds user quota
-	 */
+    /**
+     * Creates file in specified directory.
+     *
+     * @param int|Inode $parent_id target directory
+     * @param string    $filename  filename of new file
+     * @param string    $data      content of new file
+     *
+     * @throws Exception\FileAlreadyExists when there is already file with target filename
+     * @throws QuotaLimitExceeded when file content exceeds user quota
+     */
     public function create(int|Inode $parent_id, string $filename, string $data): void
     {
         if ($this->root_inode === null) {
@@ -237,16 +237,16 @@ class FileService {
 
         $this->manager->getConnection()->commit();
 
-		return;
+        return;
     }
 
-	/**
-	 * Returns content of specified file
-	 *
-	 * @param int|Inode $inode_id target inode
-	 *
-	 * @throws Exception\IsDirectoryException when target inode is a directory
-	 */
+    /**
+     * Returns content of specified file
+     *
+     * @param int|Inode $inode_id target inode
+     *
+     * @throws Exception\IsDirectoryException when target inode is a directory
+     */
     public function read($inode_id): string
     {
         if ($this->root_inode === null) {
@@ -289,22 +289,22 @@ class FileService {
         return $out;
     }
 
-	/**
-	 * Lists files in specified directory
-	 *
-	 * @param int|Inode $parent_id target directory
-	 *
-	 * @return array(
-	 *               array(
-	 *               int $inode id,
-	 *               string $filename,
-	 *               int $size (-1 for directory),
-	 *               \DateTime $last_modified
-	 *               )
-	 *         )
-	 *
-	 * @throws Exception\IsFileException when target directory is a file
-	 */
+    /**
+     * Lists files in specified directory
+     *
+     * @param int|Inode $parent_id target directory
+     *
+     * @return array(
+     *               array(
+     *               int $inode id,
+     *               string $filename,
+     *               int $size (-1 for directory),
+     *               \DateTime $last_modified
+     *               )
+     *         )
+     *
+     * @throws Exception\IsFileException when target directory is a file
+     */
     public function listDir(int|Inode $inode_id): mixed
     {
         if ($this->root_inode === null) {
@@ -322,33 +322,33 @@ class FileService {
 
         $out = Array();
         if ($inode->getParent() !== null) {
-			$root_dir = $inode->getParent()->getParent();
-			$out[] = Array(
-				$root_dir->getId(),
-				'..',
-				-1,
-				$root_dir->getLastModified(),
-			);
+            $root_dir = $inode->getParent()->getParent();
+            $out[] = Array(
+                $root_dir->getId(),
+                '..',
+                -1,
+                $root_dir->getLastModified(),
+            );
         }
 
         foreach ($dir->getChild() as $child) {
             $length = $this->inode_repository->getLength($child->getId());
-			$out[] = Array(
-				$child->getId(),
-				$child->getName(),
-				$length,
-				$child->getLastModified(),
-			);
+            $out[] = Array(
+                $child->getId(),
+                $child->getName(),
+                $length,
+                $child->getLastModified(),
+            );
         }
 
         return $out;
     }
 
-	/**
-	 * Resolves path and returns Inode object for that file or directory
-	 *
-	 * @param string $filepath path
-	 */
+    /**
+     * Resolves path and returns Inode object for that file or directory
+     *
+     * @param string $filepath path
+     */
     public function getInode(string $filepath): Inode
     {
         if ($this->root_inode === null) {
@@ -383,15 +383,15 @@ class FileService {
         return $current;
     }
 
-	/**
-	 * Returns file content for given user and path
-	 *
-	 * @param string $username username
-	 * @param string $filepath path to file
-	 *
-	 * @throws Exception\IsDirectoryException when target fath is a directory
-	 *         and index.html couldn't be found in it
-	 */
+    /**
+     * Returns file content for given user and path
+     *
+     * @param string $username username
+     * @param string $filepath path to file
+     *
+     * @throws Exception\IsDirectoryException when target fath is a directory
+     *         and index.html couldn't be found in it
+     */
     public function getFile(string $username, string $filepath): string
     {
         $this->user = $this->user_repository->findOneByUsername($username);
@@ -412,33 +412,33 @@ class FileService {
         return $this->read($file);
     }
 
-	/**
-	 * Returns full filepath for given inode
-	 *
-	 * @param int|Inode $inode target inode
-	 */
-	public function getFilepath(int|Inode $inode): string
-	{
+    /**
+     * Returns full filepath for given inode
+     *
+     * @param int|Inode $inode target inode
+     */
+    public function getFilepath(int|Inode $inode): string
+    {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
         }
 
-		$path = '';
-		$inode = $this->inode_repository->findOneById($inode);
+        $path = '';
+        $inode = $this->inode_repository->findOneById($inode);
 
-		while ($inode->getId() !== $this->root_inode->getId()) {
-			$path = $inode->getName().'/'.$path;
-			$inode = $inode->getParent()->getParent();
-		}
+        while ($inode->getId() !== $this->root_inode->getId()) {
+            $path = $inode->getName().'/'.$path;
+            $inode = $inode->getParent()->getParent();
+        }
 
-		return $path;
-	}
+        return $path;
+    }
 
-	/**
-	 * Initializes root_node of FileService for specified user.
-	 *
-	 * @param User $user user for which to initialize FileService
-	 */
+    /**
+     * Initializes root_node of FileService for specified user.
+     *
+     * @param User $user user for which to initialize FileService
+     */
     private function setUp(User $user): void {
         $this->root_inode = $user->getRootInode();
 
@@ -457,7 +457,7 @@ class FileService {
             $this->manager->flush();
         }
 
-		return;
+        return;
     }
 }
 

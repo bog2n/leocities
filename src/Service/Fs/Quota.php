@@ -15,13 +15,13 @@ class Quota {
     ) {
     }
 
-	/**
-	 * Adds specified amount of blocks to authenticated user
-	 *
-	 * @param int $num amount of blocks
-	 *
-	 * @return number of blocks used by user after operation
-	 */
+    /**
+     * Adds specified amount of blocks to authenticated user
+     *
+     * @param int $num amount of blocks
+     *
+     * @return number of blocks used by user after operation
+     */
     public function addBlocks(int $num): int
     {
         $user = $this->security->getUser();
@@ -47,13 +47,13 @@ class Quota {
         return $new_quota[0];
     }
 
-	/**
-	 * Removes specified amount of blocks from authenticated user
-	 *
-	 * @param int $num amount of blocks
-	 *
-	 * @return number of blocks used by user after operation
-	 */
+    /**
+     * Removes specified amount of blocks from authenticated user
+     *
+     * @param int $num amount of blocks
+     *
+     * @return number of blocks used by user after operation
+     */
     public function removeBlocks(int $num): int
     {
         $user = $this->security->getUser();
