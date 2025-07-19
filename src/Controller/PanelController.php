@@ -164,6 +164,8 @@ final class PanelController extends AbstractController
                         $ok = false;
                         if ($e instanceof Exception\FileAlreadyExists) {
                             $errors .= $e->getMessage().'<br>';
+                        } elseif ($e instanceof Exception\QuotaLimitExceeded) {
+                            $errors .= $e->getMessage().'<br>';
                         } else {
                             throw $e;
                         }
@@ -209,7 +211,15 @@ final class PanelController extends AbstractController
             "owner" => $this->getUser(),
         ]);
 
-        $fs->rename($id, $name);
+        try {
+            $fs->rename($id, $name);
+        } catch (\Exception $e) {
+            if ($e instanceof Exception\FileAlreadyExists) {
+                return new Response('Already exists', 409, []);
+            } else {
+                throw $e;
+            }
+        }
 
         $parent = $file->getParent()->getParent()->getId();
         return $this->render('panel/list.html.twig', [

@@ -112,7 +112,15 @@ class FileService {
 
         $inode->setName($name);
         $this->manager->persist($inode);
-        $this->manager->flush();
+        try {
+            $this->manager->flush();
+        } catch (\Exception $e) {
+            if ($e instanceof DBException\UniqueConstraintViolationException) {
+                throw new Exception\FileAlreadyExists;
+            } else {
+                throw $e;
+            }
+        }
     }
 
     public function delete($inode_id)
