@@ -232,9 +232,10 @@ final class PanelController extends AbstractController
     #[Route('/panel/quota', methods: ['GET'], name: 'get_quota')]
     public function get_quota(): Response
     {
-        return new Response(sprintf('%.2fMB / %.2fMB',
-            $this->getUser()->getQuotaUsed()/2048,
-            $this->getUser()->getQuotaLimit()/2048));
+        return $this->render('panel/quota.html.twig', [
+            'quota_used' => $this->getUser()->getQuotaUsed() * 512,
+            'quota_limit' => $this->getUser()->getQuotaLimit() * 512,
+        ]);
     }
 
     /**

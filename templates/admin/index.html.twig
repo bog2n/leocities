@@ -1,10 +1,12 @@
 {% extends 'base.html.twig' %}
 
+{% from '_bytes_to_size.twig' import bytesToSize %}
+
 {% block title %}leocities - admin panel{% endblock %}
 
 {% block body %}
 
-<h3>Free space: {{ '%.2f'|format(free_bytes / 1024 / 1024) }} MB</h3>
+<h3>Free space: {{ bytesToSize(free_bytes) }}</h3>
 
 <h3>User list:</h3>
 
@@ -22,11 +24,33 @@
 <tr>
   <td>{{ user['id'] }}</td>
   <td><a href="{{ path('app_website', {user: user['username'], slug: ''}) }}">{{ user['username'] }}</a></td>
-  <td>{{ '%.2f'|format(user['quota_used']/2048) }} MB</td>
-  <td>{{ '%.2f'|format(user['quota_limit']/2048) }} MB</td>
+  <td>{{ bytesToSize(user['quota_used']*512) }}</td>
+  <td>{{ bytesToSize(user['quota_limit']*512) }}</td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
 
+<h3>File list:</h3>
+
+<table>
+<thead>
+  <tr>
+    <th>ID</th>
+    <th>Filename</th>
+    <th>Size</th>
+    <th>Owner</th>
+  </tr>
+</thead>
+<tbody>
+{% for file in files %}
+<tr>
+  <td>{{ file['id'] }}</td>
+  <td>{{ file['filename'] }}</td>
+  <td>{{ bytesToSize(file['size']) }}</td>
+  <td>{{ file['owner'] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
 {% endblock %}

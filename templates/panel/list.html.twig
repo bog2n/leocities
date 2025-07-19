@@ -1,3 +1,6 @@
+
+{% from '_bytes_to_size.twig' import bytesToSize %}
+
 <div id="listing">
 
 <div id="error"></div>
@@ -47,7 +50,7 @@
                 />
             {% endif %}
         </td>
-        <td>{{ file[2] == -1 ? '[DIR]' : file[2] }}</td>
+        <td>{{ file[2] == -1 ? '[DIR]' : bytesToSize(file[2]) }}</td>
         <td>{{ file[3]|date('Y-m-d H:i:s') }}</td>
         <td>
                 <button hx-swap="outerHTML" hx-target="#listing" hx-target-4*="#error" hx-delete="{{ path('file_delete', {'id': file[0]}) }}">Delete</button>

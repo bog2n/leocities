@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% from '_bytes_to_size.twig' import bytesToSize %}
+
 {% block title %}Hello {{ app.user.username }}!{% endblock %}
 
 {% block body %}
@@ -11,7 +13,7 @@
 <b>{{ app.user.username }}'s website!</b>
 
 <p>
-Quota used: <span hx-trigger="quota-update from:body" hx-get="{{ path('get_quota') }}">{{ '%.2f'|format(app.user.QuotaUsed / 2 / 1024) }} MB / {{ '%.2f'|format(app.user.QuotaLimit / 2 / 1024) }} MB</span>
+Quota used: <span hx-trigger="quota-update from:body" hx-get="{{ path('get_quota') }}">{{ bytesToSize(app.user.QuotaUsed * 512) }} / {{ bytesToSize(app.user.QuotaLimit * 512) }}</span>
 </p>
 
 {{ include('_info_form.html.twig') }}
