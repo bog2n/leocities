@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}leocities - admin panel{% endblock %}
+
+{% block body %}
+
+<h3>Free space: {{ '%.2f'|format(free_bytes / 1024 / 1024) }} MB</h3>
+
+<h3>User list:</h3>
+
+<table>
+<thead>
+  <tr>
+    <th>ID</th>
+    <th>Username</th>
+    <th>Quota used</th>
+    <th>Quota limit</th>
+  </tr>
+</thead>
+<tbody>
+{% for user in users %}
+<tr>
+  <td>{{ user['id'] }}</td>
+  <td><a href="{{ path('app_website', {user: user['username'], slug: ''}) }}">{{ user['username'] }}</a></td>
+  <td>{{ '%.2f'|format(user['quota_used']/2048) }} MB</td>
+  <td>{{ '%.2f'|format(user['quota_limit']/2048) }} MB</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}
