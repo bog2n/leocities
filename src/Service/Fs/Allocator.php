@@ -2,10 +2,9 @@
 
 namespace App\Service\Fs;
 
-define('App\Service\Fs\BLOCK_SIZE', 512);
-
 use App\Repository\ExtentRepository;
 use App\Entity\Extent;
+use App\Entity\Inode;
 
 /**
  * Filesystem allocator, frees and allocates extents in block file.

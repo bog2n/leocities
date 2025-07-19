@@ -16,6 +16,7 @@ use App\Repository\UserRepository;
 use App\Service\Fs\Exception;
 use App\Service\Fs\Allocator;
 use App\Service\Fs\Quota;
+use App\Service\Fs\Consts;
 
 /**
  * Implements all the necessary filesystem methods for creating, deleting and
@@ -161,7 +162,7 @@ class FileService {
             $this->manager->remove($dir);
         } else {
             $bytes_freed = $this->allocator->free($inode);
-            $this->quota->removeBlocks(ceil($bytes_freed/BLOCK_SIZE));
+            $this->quota->removeBlocks(ceil($bytes_freed / Consts::BLOCK_SIZE));
         }
 
         $this->manager->remove($inode);
@@ -200,14 +201,14 @@ class FileService {
         }
 
         $len = strlen($data);
-        $this->quota->addBlocks(ceil($len/BLOCK_SIZE));
+        $this->quota->addBlocks(ceil($len / Consts::BLOCK_SIZE));
         $extent = $this->allocator->alloc($len);
 
         $handle = fopen($this->block_file, "c");
         if (!$handle) {
             throw new \Exception("Can't open block file");
         }
-        if (fseek($handle, $extent->getStart() * BLOCK_SIZE, SEEK_SET) === -1) {
+        if (fseek($handle, $extent->getStart() * Consts::BLOCK_SIZE, SEEK_SET) === -1) {
             throw new \Exception("Can't seek in block file");
         }
         if (!fwrite($handle, $data)) {
@@ -272,7 +273,7 @@ class FileService {
         }
         
         foreach ($inode->getExtent() as $extent) {
-            if (fseek($handle, $extent->getStart() * BLOCK_SIZE, SEEK_SET) === -1) {
+            if (fseek($handle, $extent->getStart() * Consts::BLOCK_SIZE, SEEK_SET) === -1) {
                 throw new \Exception("Can't seek in block file");
             }
             $chunk = fread($handle, $extent->getLength());
