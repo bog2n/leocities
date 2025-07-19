@@ -13,7 +13,8 @@ final class HomeController extends AbstractController
     public function index(RandomWebsiteService $randomWebsite): Response
     {
         return $this->render('home/index.html.twig', [
-            'websites' => $randomWebsite->getWebsites(10),
+            'website_num' => $randomWebsite->getWebsiteNum(),
+            'websites' => $randomWebsite->getWebsites(),
         ]);
     }
 }

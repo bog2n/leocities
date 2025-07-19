@@ -14,37 +14,47 @@ use App\Entity\Website;
  */
 class RandomWebsiteService
 {
-    const WEBSITE_CACHE_EXPIRY_TIME = 10;
-
     public function __construct(
         private CacheInterface $cache,
         private WebsiteRepository $repository,
+        private int $cache_expiry_time = 30,
+        private int $website_num = 10,
     ) {}
 
     /**
      * Returns at most $max amount of websites in random order
      *
-     * @param int $max amount of websites to retrieve
-     *
      * @return Website[]
      */
-    public function getWebsites(int $max): mixed
+    public function getWebsites(): mixed
     {
-        return $this->cache->get('randomWebsites', $this->getCacheCallback($max));
+        return $this->cache->get('randomWebsites', $this->getCacheCallback());
+    }
+
+    /**
+     * Returns expiration time for random websites
+     */
+    public function getCacheExpiryTime(): int {
+        return $this->cache_expiry_time;
+    }
+
+    /**
+     * Returns amount of random websites that are being fetched
+     */
+    public function getWebsiteNum(): int {
+        return $this->website_num;
     }
 
     /**
      * Return cache callback function for retrieving at most $max amount of websites
      *
-     * @param int $max amount of websites to retrieve
-     *
      * @return function(ItemInterface $item)
      */
-    private function getCacheCallback(int $max): mixed
+    private function getCacheCallback(): mixed
     {
         return function(ItemInterface $item) {
-            $item->expiresAfter(self::WEBSITE_CACHE_EXPIRY_TIME);
-            return $this->repository->getRandomWebsites($max);
+            $item->expiresAfter($this->cache_expiry_time);
+            return $this->repository->getRandomWebsites($this->website_num);
         };
     }
 }

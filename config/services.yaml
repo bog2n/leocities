@@ -25,5 +25,10 @@ services:
         arguments:
             $block_file: '%env(resolve:BLOCK_FILE)%'
 
+    App\Service\RandomWebsiteService:
+        arguments:
+            $cache_expiry_time: 30
+            $website_num: 10
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
