@@ -111,6 +111,7 @@ class FileService {
         }
 
         $inode->setName($name);
+		$inode->setLastModified(new \DateTime());
         $this->manager->persist($inode);
         try {
             $this->manager->flush();
@@ -271,12 +272,23 @@ class FileService {
 
         $out = Array();
         if ($inode->getParent() !== null) {
-            $out[] = Array($inode->getParent()->getParent()->getId(), '..', -1);
+			$root_dir = $inode->getParent()->getParent();
+			$out[] = Array(
+				$root_dir->getId(),
+				'..',
+				-1,
+				$root_dir->getLastModified(),
+			);
         }
 
         foreach ($dir->getChild() as $child) {
             $length = $this->inode_repository->getLength($child->getId());
-            $out[] = Array($child->getId(), $child->getName(), $length);
+			$out[] = Array(
+				$child->getId(),
+				$child->getName(),
+				$length,
+				$child->getLastModified(),
+			);
         }
 
         return $out;

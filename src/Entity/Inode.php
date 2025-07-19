@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\InodeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InodeRepository::class)]
@@ -34,10 +35,14 @@ class Inode
     #[ORM\ManyToOne(inversedBy: 'inodes')]
     private ?User $owner = null;
 
+    #[ORM\Column(type: Types::DATETIMETZ_MUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    private ?\DateTime $last_modified = null;
+
     public function __construct(User $user)
     {
         $this->extent = new ArrayCollection();
         $this->owner = $user;
+        $this->last_modified = new \DateTime();
     }
 
     public function getId(): ?int
@@ -134,6 +139,18 @@ class Inode
     public function setOwner(?User $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getLastModified(): ?\DateTime
+    {
+        return $this->last_modified;
+    }
+
+    public function setLastModified(\DateTime $last_modified): static
+    {
+        $this->last_modified = $last_modified;
 
         return $this;
     }
