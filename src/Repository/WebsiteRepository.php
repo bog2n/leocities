@@ -19,9 +19,13 @@ class WebsiteRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Website[] Returns at most $num random websites
+     * Returns at most $num random websites
+     *
+     * @param int $num max number of websites
+     *
+     * @return Website[]
      */
-    public function getRandomWebsites($num)
+    public function getRandomWebsites(int $num): mixed
     {
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());
         $rsm->addRootEntityFromClassMetadata(User::class, 'u');

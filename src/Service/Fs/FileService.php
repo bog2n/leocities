@@ -7,6 +7,7 @@ use Symfony\Component\HttpKernel\Exception as HttpException;
 use Symfony\Component\Filesystem\Path;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\DBAL\Exception as DBException;
+use App\Entity\User;
 use App\Entity\Inode;
 use App\Entity\Dir;
 use App\Repository\DirRepository;
@@ -16,6 +17,12 @@ use App\Service\Fs\Exception;
 use App\Service\Fs\Allocator;
 use App\Service\Fs\Quota;
 
+/**
+ * Implements all the necessary filesystem methods for creating, deleting and
+ * renaming files and directories.
+ *
+ * All methods except for get_file require authentication
+ */
 class FileService {
     public ?Inode $root_inode = null;
 
@@ -27,7 +34,7 @@ class FileService {
         private InodeRepository $inode_repository,
         private Allocator $allocator,
         private Quota $quota,
-        private $block_file
+        private string $block_file
     ) {
         $this->user = $security->getUser();
         if ($this->user !== null) {
@@ -35,26 +42,17 @@ class FileService {
         }
     }
 
-    private function initialize($user) {
-        $this->root_inode = $user->getRootInode();
-
-        // initialize root directory
-        if ($this->root_inode === null) {
-            $this->root_inode = new Inode($this->user);
-            $this->root_inode->setName('/');
-
-            $this->user->setRootInode($this->root_inode);
-            $this->manager->persist($this->user);
-
-            $root = new Dir();
-            $root->setParent($this->root_inode);
-
-            $this->manager->persist($root);
-            $this->manager->flush();
-        }
-    }
-
-    public function mkdir($parent_id, $name)
+	/**
+	 * Creates directory in specified parent directory
+	 *
+	 * @param int|Inode $parent_id target directory
+	 * @param string    $name      director name
+	 *
+	 * @return Dir created directory
+	 *
+	 * @throws Exception\DirectoryAlreadyExists    if directory or file already exists
+	 */
+    public function mkdir(int|Inode $parent_id, string $name): Dir
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -96,7 +94,15 @@ class FileService {
         return $new_dir;
     }
 
-    public function rename($inode_id, $name)
+	/**
+	 * Renames specified file or directory
+	 *
+	 * @param int|Inode $inode_id target inode
+	 * @param string    $name     desired filename
+	 *
+	 * @throws Exception\FileAlreadyExists when there is a file with the same filename
+	 */
+    public function rename(int|Inode $inode_id, string $name): void
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -124,7 +130,14 @@ class FileService {
         }
     }
 
-    public function delete($inode_id)
+	/**
+	 * Deletes specified file or directory
+	 *
+	 * @param int|Inode $inode_id target inode
+	 *
+	 * @throws DirectoryNotEmpty when target inode is directory and it's not empty
+	 */
+    public function delete(int|Inode $inode_id): void
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -146,14 +159,24 @@ class FileService {
             $this->manager->remove($dir);
         } else {
             $bytes_freed = $this->allocator->free($inode);
-            $this->quota->remove_blocks(ceil($bytes_freed/BLOCK_SIZE));
+            $this->quota->removeBlocks(ceil($bytes_freed/BLOCK_SIZE));
         }
 
         $this->manager->remove($inode);
         $this->manager->flush();
     }
 
-    public function create($parent_id, $filename, $data)
+	/**
+	 * Creates file in specified directory.
+	 *
+	 * @param int|Inode $parent_id target directory
+	 * @param string    $filename  filename of new file
+	 * @param string    $data      content of new file
+	 *
+	 * @throws Exception\FileAlreadyExists when there is already file with target filename
+	 * @throws QuotaLimitExceeded when file content exceeds user quota
+	 */
+    public function create(int|Inode $parent_id, string $filename, string $data): void
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -173,7 +196,7 @@ class FileService {
         }
 
         $len = strlen($data);
-        $this->quota->add_blocks(ceil($len/BLOCK_SIZE));
+        $this->quota->addBlocks(ceil($len/BLOCK_SIZE));
         $extent = $this->allocator->alloc($len);
 
         $handle = fopen($this->block_file, "c");
@@ -211,7 +234,14 @@ class FileService {
         $this->manager->getConnection()->commit();
     }
 
-    public function read($inode_id)
+	/**
+	 * Returns content of specified file
+	 *
+	 * @param int|Inode $inode_id target inode
+	 *
+	 * @throws Exception\IsDirectoryException when target inode is a directory
+	 */
+    public function read($inode_id): string
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -253,9 +283,23 @@ class FileService {
         return $out;
     }
 
-    // returns array of Array(inode_id, 'name', length) entries,
-    // length is set to -1 if entry is a directory
-    public function list_dir($inode_id)
+	/**
+	 * Lists files in specified directory
+	 *
+	 * @param int|Inode $parent_id target directory
+	 *
+	 * @return array(
+	 *               array(
+	 *               int $inode id,
+	 *               string $filename,
+	 *               int $size (-1 for directory),
+	 *               \DateTime $last_modified
+	 *               )
+	 *         )
+	 *
+	 * @throws Exception\IsFileException when target directory is a file
+	 */
+    public function listDir(int|Inode $inode_id): mixed
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -294,7 +338,12 @@ class FileService {
         return $out;
     }
 
-    public function get_inode($filepath): Inode
+	/**
+	 * Resolves path and returns Inode object for that file or directory
+	 *
+	 * @param string $filepath path
+	 */
+    public function getInode(string $filepath): Inode
     {
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -328,7 +377,16 @@ class FileService {
         return $current;
     }
 
-    public function get_file($username, $filepath)
+	/**
+	 * Returns file content for given user and path
+	 *
+	 * @param string $username username
+	 * @param string $filepath path to file
+	 *
+	 * @throws Exception\IsDirectoryException when target fath is a directory
+	 *         and index.html couldn't be found in it
+	 */
+    public function getFile(string $username, string $filepath): string
     {
         $this->user = $this->user_repository->findOneByUsername($username);
         if ($this->user === null) {
@@ -336,11 +394,11 @@ class FileService {
         }
         $this->initialize($this->user);
 
-        $file = $this->get_inode($filepath);
+        $file = $this->getInode($filepath);
         if ($file->isDir()) {
             // try to get index.html
             if (str_ends_with($filepath, '/') || $filepath === '') {
-                $file = $this->get_inode($filepath.'index.html');
+                $file = $this->getInode($filepath.'index.html');
             } else {
                 throw new Exception\IsDirectoryException;
             }
@@ -348,7 +406,12 @@ class FileService {
         return $this->read($file);
     }
 
-	public function get_filepath($inode)
+	/**
+	 * Returns full filepath for given inode
+	 *
+	 * @param int|Inode $inode target inode
+	 */
+	public function getFilepath(int|Inode $inode): string
 	{
         if ($this->root_inode === null) {
             throw new HttpException\AccessDeniedHttpException;
@@ -364,5 +427,29 @@ class FileService {
 
 		return $path;
 	}
+
+	/**
+	 * Initializes root_node of FileService for specified user.
+	 *
+	 * @param User $user user for which to initialize FileService
+	 */
+    private function initialize(User $user): void {
+        $this->root_inode = $user->getRootInode();
+
+        // initialize root directory
+        if ($this->root_inode === null) {
+            $this->root_inode = new Inode($this->user);
+            $this->root_inode->setName('/');
+
+            $this->user->setRootInode($this->root_inode);
+            $this->manager->persist($this->user);
+
+            $root = new Dir();
+            $root->setParent($this->root_inode);
+
+            $this->manager->persist($root);
+            $this->manager->flush();
+        }
+    }
 }
 

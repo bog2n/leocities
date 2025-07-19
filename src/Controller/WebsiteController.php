@@ -12,6 +12,9 @@ use App\Service\Fs\Exception\IsDirectoryException;
 
 final class WebsiteController extends AbstractController
 {
+    /**
+     * Handles serving user files
+     */
     #[Route('/~{user}/{slug<.*>}', name: 'app_website')]
     public function index(
         string $user,
@@ -33,7 +36,7 @@ final class WebsiteController extends AbstractController
         }
 
         try {
-            return new Response($fs->get_file($user, $slug), 200, [
+            return new Response($fs->getFile($user, $slug), 200, [
                 "Content-Type" => $mime,
             ]);
         } catch (IsDirectoryException $e) {

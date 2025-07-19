@@ -18,6 +18,9 @@ use App\Repository\InodeRepository;
 
 final class PanelController extends AbstractController
 {
+    /**
+     * Renders main page in user panel
+     */
     #[Route('/panel/', name: 'app_panel')]
     public function index(
         Request $request,
@@ -43,8 +46,11 @@ final class PanelController extends AbstractController
         ]);
     }
 
+    /**
+     * Returns file contents if id is of a file, otherwise renders directory listing
+     */
     #[Route('/panel/file/{id}', methods: ['GET'], name: 'file_get')]
-    public function file_get(
+    public function fileGet(
         FileService $fs,
         InodeRepository $repository,
         Request $request,
@@ -61,7 +67,7 @@ final class PanelController extends AbstractController
 
         if ($inode->isDir()) {
             return $this->render('panel/list.html.twig', [
-                'files' => $fs->list_dir($inode),
+                'files' => $fs->listDir($inode),
                 'root_inode' => $inode->getId(),
                 'is_root_dir' => $fs->root_inode->getId() == $inode->getId(),
             ]);
@@ -81,8 +87,11 @@ final class PanelController extends AbstractController
         ]);
     }
 
+    /**
+     * Creates directory in specified inode
+     */
     #[Route('/panel/file/{id}/mkdir', methods: ['POST'], name: 'file_mkdir')]
-    public function file_mkdir(
+    public function fileMkdir(
         FileService $fs,
         InodeRepository $repository,
         Request $request,
@@ -103,12 +112,18 @@ final class PanelController extends AbstractController
         }
 
         return $this->render('panel/list.html.twig', [
-            'files' => $fs->list_dir($id),
+            'files' => $fs->listDir($id),
             'root_inode' => $id,
             'is_root_dir' => $fs->root_inode->getId() == $id,
         ]);
     }
 
+    /**
+     * Deletes specifies file.
+     *
+     * throws error if directory is full.
+     * on success renders updated file listing
+     */
     #[Route('/panel/file/{id}', methods: ['DELETE'], name: 'file_delete')]
     public function file_delete(
         FileService $fs,
@@ -130,7 +145,7 @@ final class PanelController extends AbstractController
         }
 
         $resp = $this->render('panel/list.html.twig', [
-            'files' => $fs->list_dir($parent),
+            'files' => $fs->listDir($parent),
             'root_inode' => $parent,
             'is_root_dir' => $fs->root_inode->getId() == $parent,
         ]);
@@ -138,8 +153,13 @@ final class PanelController extends AbstractController
         return $resp;
     }
 
+    /**
+     * Handles file uploads and their creation.
+     *
+     * on success renders file listing
+     */
     #[Route('/panel/file/{id}/new', methods: ['POST', 'GET'], name: 'file_create')]
-    public function file_create(
+    public function fileCreate(
         int $id,
         Request $request,
         FileService $fs
@@ -177,7 +197,7 @@ final class PanelController extends AbstractController
                 }
 
                 $resp = $this->render('panel/list.html.twig', [
-                    'files' => $fs->list_dir($id),
+                    'files' => $fs->listDir($id),
                     'root_inode' => $id,
                     'is_root_dir' => $fs->root_inode->getId() == $id,
                 ]);
@@ -193,8 +213,13 @@ final class PanelController extends AbstractController
         }
     }
 
+    /*
+     * Handles file renaming.
+     *
+     * on success renders updated file listing
+     */
     #[Route('/panel/file/{id}', methods: ['POST'], name: 'file_update')]
-    public function file_update(
+    public function fileUpdate(
         int $id,
         Request $request,
         InodeRepository $repository,
@@ -223,27 +248,33 @@ final class PanelController extends AbstractController
 
         $parent = $file->getParent()->getParent()->getId();
         return $this->render('panel/list.html.twig', [
-            'files' => $fs->list_dir($parent),
+            'files' => $fs->listDir($parent),
             'root_inode' => $parent,
             'is_root_dir' => $fs->root_inode->getId() == $parent,
         ]);
     }
 
+    /**
+     * Returns formatted string of user quota
+     */
     #[Route('/panel/quota', methods: ['GET'], name: 'get_quota')]
-    public function get_quota(): Response
+    public function getQuota(): Response
     {
         return new Response(sprintf('%.2fMB / %.2fMB',
             $this->getUser()->getQuotaUsed()/2048,
             $this->getUser()->getQuotaLimit()/2048));
     }
 
+    /**
+     * Returns full path of specified file or directory
+     */
     #[Route('/panel/filepath/{id}', methods: ['GET'], name: 'get_filepath')]
-    public function get_filepath(
+    public function getFilepath(
         int $id,
         FileService $fs
     ): Response
     {
-        $filepath = '/'.$fs->get_filepath($id);
+        $filepath = '/'.$fs->getFilepath($id);
 
         return new Response($filepath);
     }

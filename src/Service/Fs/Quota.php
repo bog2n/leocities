@@ -5,6 +5,9 @@ namespace App\Service\Fs;
 use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * Quota class, responsible for accounting filesystem usage of users.
+ */
 class Quota {
     public function __construct(
         private EntityManagerInterface $manager,
@@ -12,7 +15,14 @@ class Quota {
     ) {
     }
 
-    public function add_blocks($num)
+	/**
+	 * Adds specified amount of blocks to authenticated user
+	 *
+	 * @param int $num amount of blocks
+	 *
+	 * @return number of blocks used by user after operation
+	 */
+    public function addBlocks(int $num): int
     {
         $user = $this->security->getUser();
         if ($user === null) {
@@ -37,7 +47,14 @@ class Quota {
         return $new_quota[0];
     }
 
-    public function remove_blocks($num)
+	/**
+	 * Removes specified amount of blocks from authenticated user
+	 *
+	 * @param int $num amount of blocks
+	 *
+	 * @return number of blocks used by user after operation
+	 */
+    public function removeBlocks(int $num): int
     {
         $user = $this->security->getUser();
         if ($user === null) {

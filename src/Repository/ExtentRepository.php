@@ -18,7 +18,10 @@ class ExtentRepository extends ServiceEntityRepository
         parent::__construct($registry, Extent::class);
     }
 
-    public function getFreeExtent()
+    /**
+     * Returns biggest possible extent in block file
+     */
+    public function getFreeExtent(): Extent
     {
         $result = $this->getEntityManager()
                        ->getConnection()
