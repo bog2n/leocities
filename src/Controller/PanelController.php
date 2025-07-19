@@ -37,7 +37,7 @@ final class PanelController extends AbstractController
 
         return $this->render('panel/index.html.twig', [
             'user' => $user,
-            'infoForm' => $infoForm,
+            'info_form' => $infoForm,
             'root_inode' => $fs->root_inode->getId(),
         ]);
     }

@@ -290,18 +290,12 @@ class FileService {
     }
 
     /**
-     * Lists files in specified directory
+	 * Lists files in specified directory.
+	 * $size is set to -1 for directories
      *
      * @param int|Inode $parent_id target directory
      *
-     * @return array(
-     *               array(
-     *               int $inode id,
-     *               string $filename,
-     *               int $size (-1 for directory),
-     *               \DateTime $last_modified
-     *               )
-     *         )
+     * @return array<array<int $inode id, string $filename, int $size, \DateTime $last_modified>>
      *
      * @throws Exception\IsFileException when target directory is a file
      */
