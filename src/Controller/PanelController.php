@@ -22,26 +22,22 @@ final class PanelController extends AbstractController
      * Renders main page in user panel
      */
     #[Route('/panel/', name: 'app_panel')]
-    public function index(
-        Request $request,
-        EntityManagerInterface $manager,
-        FileService $fs
-    ): Response
+    public function index(Request $request, EntityManagerInterface $manager, FileService $fs): Response
     {
         $user = $this->getUser();
         $website = $user->getWebsite();
 
-        $info_form = $this->createForm(DescriptionType::class, $website);
-        $info_form->handleRequest($request);
+        $infoForm = $this->createForm(DescriptionType::class, $website);
+        $infoForm->handleRequest($request);
 
-        if ($info_form->isSubmitted() && $info_form->isValid()) {
+        if ($infoForm->isSubmitted() && $infoForm->isValid()) {
             $manager->persist($website);
             $manager->flush();
         }
 
         return $this->render('panel/index.html.twig', [
             'user' => $user,
-            'info_form' => $info_form,
+            'infoForm' => $infoForm,
             'root_inode' => $fs->root_inode->getId(),
         ]);
     }
@@ -50,12 +46,7 @@ final class PanelController extends AbstractController
      * Returns file contents if id is of a file, otherwise renders directory listing
      */
     #[Route('/panel/file/{id}', methods: ['GET'], name: 'file_get')]
-    public function fileGet(
-        FileService $fs,
-        InodeRepository $repository,
-        Request $request,
-        int $id
-    ): Response
+    public function file_get(FileService $fs, InodeRepository $repository, Request $request, int $id): Response
     {
         $inode = $repository->findOneBy([
             "id" => $id,
@@ -91,12 +82,7 @@ final class PanelController extends AbstractController
      * Creates directory in specified inode
      */
     #[Route('/panel/file/{id}/mkdir', methods: ['POST'], name: 'file_mkdir')]
-    public function fileMkdir(
-        FileService $fs,
-        InodeRepository $repository,
-        Request $request,
-        int $id
-    ): Response
+    public function file_mkdir(FileService $fs, InodeRepository $repository, Request $request, int $id): Response
     {
         $name = $request->request->get('name');
         if ($name === null) {
@@ -125,12 +111,7 @@ final class PanelController extends AbstractController
      * on success renders updated file listing
      */
     #[Route('/panel/file/{id}', methods: ['DELETE'], name: 'file_delete')]
-    public function file_delete(
-        FileService $fs,
-        InodeRepository $repository,
-        Request $request,
-        int $id,
-    ): Response
+    public function file_delete(FileService $fs, InodeRepository $repository, Request $request, int $id,): Response
     {
         $file = $repository->findOneBy([
             "id" => $id,
@@ -144,13 +125,13 @@ final class PanelController extends AbstractController
             return new Response("Directory not empty", 406);
         }
 
-        $resp = $this->render('panel/list.html.twig', [
+        $response = $this->render('panel/list.html.twig', [
             'files' => $fs->listDir($parent),
             'root_inode' => $parent,
             'is_root_dir' => $fs->root_inode->getId() == $parent,
         ]);
-        $resp->headers->set('HX-Trigger', 'quota-update');
-        return $resp;
+        $response->headers->set('HX-Trigger', 'quota-update');
+        return $response;
     }
 
     /**
@@ -159,21 +140,17 @@ final class PanelController extends AbstractController
      * on success renders file listing
      */
     #[Route('/panel/file/{id}/new', methods: ['POST', 'GET'], name: 'file_create')]
-    public function fileCreate(
-        int $id,
-        Request $request,
-        FileService $fs
-    ): Response
+    public function file_create(int $id, Request $request, FileService $fs): Response
     {
-        $upload_form = $this->createForm(UploadType::class);
-        $upload_form->handleRequest($request);
+        $uploadForm = $this->createForm(UploadType::class);
+        $uploadForm->handleRequest($request);
 
-        if ($request->getMethod() === "POST" && $upload_form->isSubmitted()) {
-            if ($upload_form->isValid()) {
+        if ($request->getMethod() === "POST" && $uploadForm->isSubmitted()) {
+            if ($uploadForm->isValid()) {
                 $ok = true;
                 $errors = '';
 
-                foreach ($upload_form['file']->getData() as $file) {
+                foreach ($uploadForm['file']->getData() as $file) {
                     try {
                         $fs->create(
                             $id,
@@ -196,13 +173,13 @@ final class PanelController extends AbstractController
                     return new Response($errors, 400);
                 }
 
-                $resp = $this->render('panel/list.html.twig', [
+                $response = $this->render('panel/list.html.twig', [
                     'files' => $fs->listDir($id),
                     'root_inode' => $id,
                     'is_root_dir' => $fs->root_inode->getId() == $id,
                 ]);
-                $resp->headers->set('HX-Trigger', 'quota-update');
-                return $resp;
+                $response->headers->set('HX-Trigger', 'quota-update');
+                return $response;
             } else {
                 return new Response("Can't upload file", 400);
             }
@@ -219,12 +196,7 @@ final class PanelController extends AbstractController
      * on success renders updated file listing
      */
     #[Route('/panel/file/{id}', methods: ['POST'], name: 'file_update')]
-    public function fileUpdate(
-        int $id,
-        Request $request,
-        InodeRepository $repository,
-        FileService $fs
-    ): Response
+    public function file_update(int $id, Request $request, InodeRepository $repository, FileService $fs): Response
     {
         $name = $request->request->get('name');
         if ($name === "") {
@@ -258,7 +230,7 @@ final class PanelController extends AbstractController
      * Returns formatted string of user quota
      */
     #[Route('/panel/quota', methods: ['GET'], name: 'get_quota')]
-    public function getQuota(): Response
+    public function get_quota(): Response
     {
         return new Response(sprintf('%.2fMB / %.2fMB',
             $this->getUser()->getQuotaUsed()/2048,
@@ -269,10 +241,7 @@ final class PanelController extends AbstractController
      * Returns full path of specified file or directory
      */
     #[Route('/panel/filepath/{id}', methods: ['GET'], name: 'get_filepath')]
-    public function getFilepath(
-        int $id,
-        FileService $fs
-    ): Response
+    public function get_filepath(int $id, FileService $fs): Response
     {
         $filepath = '/'.$fs->getFilepath($id);
 

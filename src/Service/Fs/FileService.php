@@ -38,7 +38,7 @@ class FileService {
     ) {
         $this->user = $security->getUser();
         if ($this->user !== null) {
-            $this->initialize($this->user);
+            $this->setUp($this->user);
         }
     }
 
@@ -58,14 +58,14 @@ class FileService {
             throw new HttpException\AccessDeniedHttpException;
         }
 
-        $parent_inode = $this->inode_repository->findOneBy([
+        $parentInode = $this->inode_repository->findOneBy([
             "id" => $parent_id,
             "owner" => $this->user->getId(),
         ]);
-        if ($parent_inode === null) {
+        if ($parentInode === null) {
             throw new HttpException\NotFoundHttpException;
         }
-        $parent = $parent_inode->getDir();
+        $parent = $parentInode->getDir();
         if ($parent === null) {
             throw new Exception\DirectoryAlreadyExists; // it's a file but we don't care
         }
@@ -77,9 +77,9 @@ class FileService {
         $parent->addChild($new);
         $this->manager->persist($parent);
 
-        $new_dir = new Dir();
-        $new_dir->setParent($new);
-        $this->manager->persist($new_dir);
+        $newDir = new Dir();
+        $newDir->setParent($new);
+        $this->manager->persist($newDir);
 
         try {
             $this->manager->flush();
@@ -91,7 +91,7 @@ class FileService {
             }
         }
 
-        return $new_dir;
+        return $newDir;
     }
 
 	/**
@@ -128,6 +128,8 @@ class FileService {
                 throw $e;
             }
         }
+
+		return;
     }
 
 	/**
@@ -164,6 +166,8 @@ class FileService {
 
         $this->manager->remove($inode);
         $this->manager->flush();
+
+		return;
     }
 
 	/**
@@ -182,16 +186,16 @@ class FileService {
             throw new HttpException\AccessDeniedHttpException;
         }
 
-        $parent_inode = $this->inode_repository->findOneBy([
+        $parentInode = $this->inode_repository->findOneBy([
             "id" => $parent_id,
             "owner" => $this->user->getId(),
         ]);
-        if ($parent_inode === null) {
+        if ($parentInode === null) {
             throw new HttpException\NotFoundHttpException;
         }
 
-        $parent_dir = $parent_inode->getDir();
-        if ($parent_dir === null) {
+        $parentDir = $parentInode->getDir();
+        if ($parentDir === null) {
             throw new HttpException\NotFoundHttpException;
         }
 
@@ -218,8 +222,8 @@ class FileService {
         $inode->setName($filename);
         $this->manager->persist($inode);
 
-        $parent_dir->addChild($inode);
-        $this->manager->persist($parent_dir);
+        $parentDir->addChild($inode);
+        $this->manager->persist($parentDir);
 
         try {
             $this->manager->flush();
@@ -232,6 +236,8 @@ class FileService {
         }
 
         $this->manager->getConnection()->commit();
+
+		return;
     }
 
 	/**
@@ -392,7 +398,7 @@ class FileService {
         if ($this->user === null) {
             throw new HttpException\NotFoundHttpException;
         }
-        $this->initialize($this->user);
+        $this->setUp($this->user);
 
         $file = $this->getInode($filepath);
         if ($file->isDir()) {
@@ -433,7 +439,7 @@ class FileService {
 	 *
 	 * @param User $user user for which to initialize FileService
 	 */
-    private function initialize(User $user): void {
+    private function setUp(User $user): void {
         $this->root_inode = $user->getRootInode();
 
         // initialize root directory
@@ -450,6 +456,8 @@ class FileService {
             $this->manager->persist($root);
             $this->manager->flush();
         }
+
+		return;
     }
 }
 

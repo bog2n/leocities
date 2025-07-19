@@ -13,11 +13,11 @@ class UploadType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-			->add('file', FileType::class, [
-				'label' => 'Upload file',
-				'multiple' => true,
-			])
-			->add('root_inode', IntegerType::class)
+            ->add('file', FileType::class, [
+                'label' => 'Upload file',
+                'multiple' => true,
+            ])
+            ->add('root_inode', IntegerType::class)
         ;
     }
 

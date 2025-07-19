@@ -16,11 +16,7 @@ final class WebsiteController extends AbstractController
      * Handles serving user files
      */
     #[Route('/~{user}/{slug<.*>}', name: 'app_website')]
-    public function index(
-        string $user,
-        string $slug,
-        FileService $fs
-    ): Response
+    public function index(string $user, string $slug, FileService $fs): Response
     {
         $ext = Path::getExtension($slug);
         if ($slug === '' || str_ends_with($slug, '/')) {
