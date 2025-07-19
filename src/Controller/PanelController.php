@@ -104,7 +104,7 @@ final class PanelController extends AbstractController
 
         return $this->render('panel/list.html.twig', [
             'files' => $fs->list_dir($id),
-            'root_inode' => $fs->root_inode->getId(),
+            'root_inode' => $id,
             'is_root_dir' => $fs->root_inode->getId() == $id,
         ]);
     }
@@ -235,5 +235,16 @@ final class PanelController extends AbstractController
         return new Response(sprintf('%.2fMB / %.2fMB',
             $this->getUser()->getQuotaUsed()/2048,
             $this->getUser()->getQuotaLimit()/2048));
+    }
+
+    #[Route('/panel/filepath/{id}', methods: ['GET'], name: 'get_filepath')]
+    public function get_filepath(
+        int $id,
+        FileService $fs
+    ): Response
+    {
+        $filepath = '/'.$fs->get_filepath($id);
+
+        return new Response($filepath);
     }
 }

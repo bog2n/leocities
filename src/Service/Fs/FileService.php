@@ -335,5 +335,22 @@ class FileService {
         }
         return $this->read($file);
     }
+
+	public function get_filepath($inode)
+	{
+        if ($this->root_inode === null) {
+            throw new HttpException\AccessDeniedHttpException;
+        }
+
+		$path = '';
+		$inode = $this->inode_repository->findOneById($inode);
+
+		while ($inode->getId() !== $this->root_inode->getId()) {
+			$path = $inode->getName().'/'.$path;
+			$inode = $inode->getParent()->getParent();
+		}
+
+		return $path;
+	}
 }
 
