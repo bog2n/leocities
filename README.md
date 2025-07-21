@@ -11,7 +11,7 @@ implementation that stores metadata in postgresql database and actual data in
 block file. This allows it to handle user quotas entirely in application
 itself!
 
-## Deployment instructions
+## Deployment steps
 
 1. Install dependencies:
     ```
