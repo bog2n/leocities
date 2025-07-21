@@ -6,20 +6,32 @@
 
 {% block body %}
 
-<a href="{{ path('app_home') }}">Back</a>
+	<nav>
+
+	<a href="{{ path('app_home') }}">back</a>
+
+	<div>
+	Logged in as <em>{{ app.user.username }}</em>
+	</div>
+
+	<div id="quota">
+		<span hx-trigger="quota-update from:body" hx-get="{{ path('get_quota') }}">{{ bytesToSize(app.user.QuotaUsed * 512) }} / {{ bytesToSize(app.user.QuotaLimit * 512) }}</span>
+	</div>
+
+	</nav>
 
 <hr>
 
-<b>{{ app.user.username }}'s website!</b>
-
-<p>
-Quota used: <span hx-trigger="quota-update from:body" hx-get="{{ path('get_quota') }}">{{ bytesToSize(app.user.QuotaUsed * 512) }} / {{ bytesToSize(app.user.QuotaLimit * 512) }}</span>
-</p>
-
+<em>you might need to reload this page if you enter it right after logging in</em>
+		
 {{ include('_info_form.html.twig') }}
 
 <hr>
 
+<div id="error"></div>
+
+<div id="listing">
 {{ render(path('file_get', {id: root_inode})) }}
+</div>
 
 {% endblock %}

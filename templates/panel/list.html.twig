@@ -1,11 +1,7 @@
 
 {% from '_bytes_to_size.twig' import bytesToSize %}
 
-<div id="listing">
-
-<div id="error"></div>
-
-<div id="filepath">{{ render(path('get_filepath', {id: root_inode})) }}</div>
+<div id="filepath">Path: {{ render(path('get_filepath', {id: root_inode})) }}</div>
 
 <table>
     <thead>
@@ -23,26 +19,26 @@
             {% if file[2] == -1 %}
                 <a href=""
                     hx-target="#listing"
-                    hx-swap="outerHTML"
+                    hx-swap="innerHTML"
                     hx-get="{{ path('file_get', {'id': file[0]}) }}"
-                >→</a>
+                >»</a>
                 <input
                     hx-post="{{ path('file_update', {id: file[0]}) }}"
                     hx-trigger="focusout"
                     hx-target="#listing"
-                    hx-swap="outerHTML"
+                    hx-swap="innerHTML"
                     hx-target-4*="#error"
                     type="text"
                     name="name"
                     value="{{ file[1] }}"
                 />
             {% else %}
-                <a href="{{ path('file_get', {id: file[0]}) }}">→</a>
+                <a href="{{ path('file_get', {id: file[0]}) }}">»</a>
                 <input
                     hx-post="{{ path('file_update', {id: file[0]}) }}"
                     hx-trigger="focusout"
                     hx-target="#listing"
-                    hx-swap="outerHTML"
+                    hx-swap="innerHTML"
                     hx-target-4*="#error"
                     type="text"
                     name="name"
@@ -53,11 +49,11 @@
         <td>{{ file[2] == -1 ? '[DIR]' : bytesToSize(file[2]) }}</td>
         <td>{{ file[3]|date('Y-m-d H:i:s') }}</td>
         <td>
-                <button hx-swap="outerHTML" hx-target="#listing" hx-target-4*="#error" hx-delete="{{ path('file_delete', {'id': file[0]}) }}">Delete</button>
+                <button hx-swap="innerHTML" hx-target="#listing" hx-target-4*="#error" hx-delete="{{ path('file_delete', {'id': file[0]}) }}">Delete</button>
         </td>
         {% else %}
         <td>
-            <a hx-target="#listing" hx-swap="outerHTML" hx-get="{{ path('file_get', {'id': file[0]}) }}" href="">→</a>
+            <a hx-target="#listing" hx-swap="innerHTML" hx-get="{{ path('file_get', {'id': file[0]}) }}" href="">»</a>
             ..
         </td>
         <td>[DIR]</td>
@@ -67,16 +63,17 @@
     </tbody>
 </table>
 
+<hr>
+
 <form
     hx-post="{{ path('file_mkdir', {id: root_inode }) }}"
     hx-target="#listing"
     hx-target-4*="#error"
-    hx-swap="outerHTML"
+    hx-swap="innerHTML"
 >
     <input type="text" name="name">
-    <button type="submit">mkdir</button>
+    <button type="submit">Create directory</button>
 </form>
 
 {{ render(path('file_create', {id: root_inode})) }}
 
-</div>

@@ -2,10 +2,13 @@
 
 {% block body %}
 
+	<header>Welcome to Leocities!</header>
+
+	<nav>
+
 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
 
-<h1>Hello {{ app.user.username }}</h1>
-<a href="{{ path('app_panel') }}">Panel</a>
+<a href="{{ path('app_panel') }}">User Panel</a>
 <a href="{{ path('app_logout') }}">Logout</a>
 
 {% else %}
@@ -15,17 +18,31 @@ or
 <a href="{{ path('app_register') }}">Register</a>
 {% endif %}
 
-<hr>
+	</nav>
 
-here's {{ website_num }} random websites:
+	<section>
+		Leocities is a successor to <a href="https://neocities.org">neocities</a>
+		which is successor to geocities. Because there's only a limited amount of
+		three-letter words that end with <em>eo</em>.
+	</section>
+
+	<section>
+		On leocites you can host your website and stuff, because that's what
+		the web is all about or something...
+	</section>
+	
+	<section>
+	Here's some randomly selected websites hosted on leocities:
 
 <ul>
 {% for website in websites %}
 	<li>
-		<a href="{{ path('app_website', {'user': website.username, 'slug': '' }) }}">{{ website.username }}</a>
+		<a href="{{ path('app_website', {'user': website.username, 'slug': '' }) }}">{{ website.username }}</a> -
 		<em>{{ website.website.description }}</em>
 	</li>
 {% endfor %}
 </ul>
+
+	</section>
 
 {% endblock %}
